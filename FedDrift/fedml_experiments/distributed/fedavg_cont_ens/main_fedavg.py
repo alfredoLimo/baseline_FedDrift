@@ -242,6 +242,8 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
 if __name__ == "__main__":
     # initialize distributed computing (MPI)
     comm, process_id, worker_number = FedML_init()
+    
+    print("ok")
 
     logging.basicConfig(filename='output.log', level=logging.INFO)
 
