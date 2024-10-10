@@ -42,7 +42,9 @@ class FedAvgEnsServerManager(ServerManager):
         b_all_received = self.aggregator.check_whether_all_receive()
         logging.info("b_all_received = " + str(b_all_received))
         if b_all_received:
+        # if True:
             global_model_params = self.aggregator.aggregate(self.round_idx)
+            print(f"round idx: {self.round_idx}, round num: {self.round_num}")
             self.aggregator.test_on_all_clients(self.round_idx)
 
             # start the next round

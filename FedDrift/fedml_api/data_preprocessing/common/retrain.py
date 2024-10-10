@@ -75,7 +75,7 @@ def load_retrain_table_data(data_path, num_client, current_train_iteration,
     else:
         raise NameError(retrain_method)
             
-    # Use the data in the next training iteration as the test data
+    # Use the data in the next training iteration as the test data   # TODO what the fk is this
     for c in range(num_client):
         test_df = pd.read_csv(data_path +
                               csv_file_name.format(

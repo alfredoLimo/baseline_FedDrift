@@ -208,7 +208,9 @@ class FedAvgEnsAggregatorSoftCluster(object):
         return {'sc_weights': self.sc_state.get_weights()}
 
     def test_on_all_clients(self, round_idx):
-        if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
+        # if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
+        # if round_idx == self.args.comm_round - 1:
+        if True:
             logging.info("################local_test_on_all_clients : {}".format(round_idx))
             train_num_samples = []
             train_tot_corrects = []

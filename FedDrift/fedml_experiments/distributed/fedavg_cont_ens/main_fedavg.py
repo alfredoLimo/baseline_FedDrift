@@ -130,37 +130,42 @@ if __name__ == "__main__":
     comm, process_id, worker_number = FedML_init()
 
     logging.basicConfig(filename='output.log', level=logging.INFO)
-
     # parse python script input parameters
     parser = argparse.ArgumentParser()
     args = add_args(parser)
     logging.info(args)
-#    args.curr_train_iteration -= 1
 
-    # this shouldn't be necessary, but explictly delete state files from
-    # previous runs so that initialization bugs will be found at runtime 
-    comm.Barrier()
-    if args.curr_train_iteration == 0 and process_id == 0:
-        filenames = ['model_params.pt', 'ds_state.pkl', 'mm_state.pkl', 'sc_state.pkl', 'ada_state.pkl', 'kue_state.pkl']
-        for f in filenames:
-            if os.path.exists(f):
-                os.remove(f)
-    comm.Barrier()
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+    utils.torch_seed = args.seed
 
-    # customize the process name
-    str_process_name = "FedAvg (distributed):" + str(process_id)
-    setproctitle.setproctitle(str_process_name)
+    # Don't care, Don't touch
+    if True:
+        # this shouldn't be necessary, but explictly delete state files from
+        # previous runs so that initialization bugs will be found at runtime 
+        comm.Barrier()
+        if args.curr_train_iteration == 0 and process_id == 0:
+            filenames = ['model_params.pt', 'ds_state.pkl', 'mm_state.pkl', 'sc_state.pkl', 'ada_state.pkl', 'kue_state.pkl']
+            for f in filenames:
+                if os.path.exists(f):
+                    os.remove(f)
+        comm.Barrier()
 
-    # customize the log format
-    logging.basicConfig(level=logging.INFO,
-                        format=str(
-                            process_id) + ' - %(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-                        datefmt='%a, %d %b %Y %H:%M:%S')
-    hostname = socket.gethostname()
-    logging.info("#############process ID = " + str(process_id) +
-                 ", host name = " + hostname + "########" +
-                 ", process ID = " + str(os.getpid()) +
-                 ", process Name = " + str(psutil.Process(os.getpid())))
+        # customize the process name
+        str_process_name = "FedAvg (distributed):" + str(process_id)
+        setproctitle.setproctitle(str_process_name)
+
+        # customize the log format
+        logging.basicConfig(level=logging.INFO,
+                            format=str(
+                                process_id) + ' - %(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                            datefmt='%a, %d %b %Y %H:%M:%S')
+        hostname = socket.gethostname()
+        logging.info("#############process ID = " + str(process_id) +
+                    ", host name = " + hostname + "########" +
+                    ", process ID = " + str(os.getpid()) +
+                    ", process Name = " + str(psutil.Process(os.getpid())))
 
     # initialize the wandb machine learning experimental tracking platform (https://www.wandb.com/).
     if process_id == 0:
@@ -175,14 +180,6 @@ if __name__ == "__main__":
             config=args
         )
 
-    # Set the random seed. The np.random seed determines the dataset partition.
-    # The torch_manual_seed determines the initial weight.
-    # Fixed so that we can reproduce the result.
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    random.seed(args.seed)
-    utils.torch_seed = args.seed
-
     # GPU arrangement: Please customize this function according your own topology.
     # The GPU server list is configured at "mpi_host_file".
     # If we have 4 machines and each has two GPUs, and your FL network has 8 workers and a central worker.
@@ -195,9 +192,15 @@ if __name__ == "__main__":
     logging.info("process_id = %d, size = %d" % (process_id, worker_number))
     device = init_training_device(process_id, worker_number - 1, args.gpu_num_per_server)
 
+
+
+
+
+
+
+
     # load data
-    datasets = FedML_FedAvgEns_data_loader(args, load_data_by_dataset,
-                                           device, comm, process_id)
+    datasets = FedML_FedAvgEns_data_loader(args, load_data_by_dataset, device, comm, process_id)
     all_data = load_all_data_by_dataset(args)
                                            
     #dataset = load_data(args)
