@@ -9,33 +9,16 @@ import psutil
 import setproctitle
 import torch
 import wandb
-import pickle
 import random
-
-# add the FedML root directory to the python path
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 
-from fedml_api.data_preprocessing.sea.data_loader import load_partition_data_sea, load_all_data_sea
-
-from fedml_api.data_preprocessing.sine.data_loader import load_partition_data_sine, load_all_data_sine
-
-from fedml_api.data_preprocessing.circle.data_loader import load_partition_data_circle, load_all_data_circle
-
 from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_mnist, load_all_data_mnist
-
-from fedml_api.data_preprocessing.fmow.data_loader import load_partition_data_fmow, load_all_data_fmow
-
 from fedml_api.model.linear.lr import LogisticRegression
-
 from fedml_api.model.fnn.fnn import FeedForwardNN
-
 from fedml_api.model.cv.cnn import CNN_DropOut
-
 import torchvision
 
 from fedml_api.model import utils
-
 from fedml_api.distributed.fedavg_ens.FedAvgEnsAPI import FedML_init, FedML_FedAvgEns_distributed, FedML_FedAvgEns_data_loader
 
 
@@ -44,96 +27,37 @@ def add_args(parser):
     parser : argparse.ArgumentParser
     return a parser added with args required by fit
     """
-    # Training settings
-    parser.add_argument('--model', type=str, default='mobilenet', metavar='N',
-                        help='neural network used in training')
-
-    parser.add_argument('--dataset', type=str, default='cifar10', metavar='N',
-                        help='dataset used for training')
-
-    parser.add_argument('--data_dir', type=str, default='./../../../data/cifar10',
-                        help='data directory')                       
-
-    parser.add_argument('--client_num_in_total', type=int, default=1000, metavar='NN',
-                        help='number of workers in a distributed cluster')
-
-    parser.add_argument('--client_num_per_round', type=int, default=4, metavar='NN',
-                        help='number of workers')
-
-    parser.add_argument('--batch_size', type=int, default=64, metavar='N',
-                        help='input batch size for training (default: 64)')
-
-    parser.add_argument('--client_optimizer', type=str, default='adam',
-                        help='SGD with momentum; adam')
-
-    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
-                        help='learning rate (default: 0.001)')
-
-    parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
-
-    parser.add_argument('--epochs', type=int, default=5, metavar='EP',
-                        help='how many epochs will be trained locally')
-
-    parser.add_argument('--comm_round', type=int, default=10,
-                        help='how many round of communications we shoud use')
-
-    parser.add_argument('--is_mobile', type=int, default=0,
-                        help='whether the program is running on the FedML-Mobile server side')
-
-    parser.add_argument('--frequency_of_the_test', type=int, default=1,
-                        help='the frequency of the algorithms')
-
-    parser.add_argument('--gpu_server_num', type=int, default=1,
-                        help='gpu_server_num')
-
-    parser.add_argument('--gpu_num_per_server', type=int, default=4,
-                        help='gpu_num_per_server')
-
-    parser.add_argument('--ci', type=int, default=0,
-                        help='CI')
-
-    parser.add_argument('--total_train_iteration', type=int, default=3,
-                        help='The number of FedML iterations (over time)')
-
-    parser.add_argument('--curr_train_iteration', type=int, default=0,
-                        help='The current Fededrated Learning iterations (over time)')
-
-    parser.add_argument('--drift_together', type=int, default=0,
-                        help='If the concept drift happens at the same time across all clients')
-
-    parser.add_argument('--report_client', type=int, default=0,
-                        help='Whether reporting the accuracy of each client')
-
-    parser.add_argument('--retrain_data', type=str, default='win-1',
-                        help='which data to be included for retraining')
-
-    parser.add_argument('--concept_drift_algo', type=str, default='aue',
-                        help='The algorithm to handle concept drift')
-
-    parser.add_argument('--concept_drift_algo_arg', type=str, default='',
-                        help='The parameter for concept drift algorithm')
-
-    parser.add_argument('--ensemble_window', type=int, default=4,
-                        help='The number of models to keep in the ensemble')
-
-    parser.add_argument('--concept_num', type=int, default=2,
-                        help='The number of concepts in the experiments')
-
-    parser.add_argument('--change_points', type=str, default='',
-                        help='Specify change point matrix (a filename in data dir)')
-
-    parser.add_argument('--time_stretch', type=int, default=1,
-                        help='change points are stretched out by this multiplicative factor')                        
-                        
-    parser.add_argument('--reset_models', type=int, default=0,
-                        help='If the model parameters should be reset between train iterations')
+    parser.add_argument('--client_num_in_total', type=int, default=1000, metavar='NN', help='number of workers in a distributed cluster')
+    parser.add_argument('--client_num_per_round', type=int, default=4, metavar='NN', help='number of workers')
+    parser.add_argument('--gpu_server_num', type=int, default=1)
+    parser.add_argument('--gpu_num_per_server', type=int, default=4)
+    parser.add_argument('--model', type=str, default='mobilenet')
+    parser.add_argument('--comm_round', type=int, default=10, help='how many round of communications we shoud use')
+    parser.add_argument('--epochs', type=int, default=5, metavar='EP', help='how many epochs will be trained locally')
+    parser.add_argument('--batch_size', type=int, default=64, metavar='N', help='input batch size for training (default: 64)')
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate (default: 0.001)')
+    parser.add_argument('--dataset', type=str, default='MNIST')
+    parser.add_argument('--data_dir', type=str, default='./../../../data/')
+    parser.add_argument('--noise_prob', type=float, default=0, help='label of a sample is swapped with this probability') # NOT USED
+    parser.add_argument('--ci', type=int, default=0)
+    parser.add_argument('--total_train_iteration', type=int, default=3, help='The number of FedML iterations (over time)')
+    parser.add_argument('--concept_num', type=int, default=2, help='The number of concepts in the experiments')
+    parser.add_argument('--reset_models', type=int, default=0, help='If the model parameters should be reset between train iterations')
+    parser.add_argument('--drift_together', type=int, default=0, help='If the concept drift happens at the same time across all clients')
+    parser.add_argument('--concept_drift_algo', type=str, default='aue', help='The algorithm to handle concept drift')
+    parser.add_argument('--concept_drift_algo_arg', type=str, default='', help='The parameter for concept drift algorithm')
+    parser.add_argument('--time_stretch', type=int, default=1, help='change points are stretched out by this multiplicative factor')  
+    parser.add_argument('--seed', type=int, default=0, help='random seeds')
+    parser.add_argument('--change_points', type=str, default='', help='Specify change point matrix (a filename in data dir)')
+    parser.add_argument('--curr_train_iteration', type=int, default=0, help='The current Fededrated Learning iterations (over time)')
+    parser.add_argument('--report_client', type=int, default=0, help='Whether reporting the accuracy of each client')
+    parser.add_argument('--retrain_data', type=str, default='win-1', help='which data to be included for retraining')
     
-    # this parameter is unused after prepare_data but included here to log on wandb
-    parser.add_argument('--noise_prob', type=float, default=0,
-                        help='label of a sample is swapped with this probability')
-                        
-    parser.add_argument('--dummy_arg', type=int, default=0,
-                        help='parameter to distinguish different trials. may be used for random seeds')
+    parser.add_argument('--client_optimizer', type=str, default='adam', help='SGD with momentum; adam')
+    parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
+    parser.add_argument('--is_mobile', type=int, default=0, help='whether the program is running on the FedML-Mobile server side')
+    parser.add_argument('--frequency_of_the_test', type=int, default=1,help='the frequency of the algorithms')
+    parser.add_argument('--ensemble_window', type=int, default=4, help='The number of models to keep in the ensemble')
 
     args = parser.parse_args()
     return args
@@ -142,41 +66,12 @@ def load_data_by_dataset(args):
     dataset_name = args.dataset
     logging.info("load_data. dataset_name = %s" % dataset_name)
 
-    if dataset_name == "sea":
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_sea(args.batch_size, args.curr_train_iteration,
-                                            args.client_num_in_total, args.retrain_data)
-        feature_num = 3
-
-    elif dataset_name == "sine":
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_sine(args.batch_size, args.curr_train_iteration,
-                                             args.client_num_in_total, args.retrain_data)
-        feature_num = 2
-
-    elif dataset_name == "circle":
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_circle(args.batch_size, args.curr_train_iteration,
-                                               args.client_num_in_total, args.retrain_data)
-        feature_num = 2
-        
-    elif dataset_name == "MNIST":
+    if dataset_name == "MNIST":
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
         class_num = load_partition_data_mnist(args.batch_size, args.curr_train_iteration,
                                               args.client_num_in_total, args.retrain_data)
-        feature_num = 784
-        
-    elif dataset_name == "fmow":
-        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
-        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
-        class_num = load_partition_data_fmow(args.batch_size, args.curr_train_iteration,
-                                             args.client_num_in_total, args.retrain_data, 
-                                             args.data_dir, args.change_points)
-        feature_num = 3*224*224
+        feature_num = 784 # TODO
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict,
@@ -186,22 +81,13 @@ def load_data_by_dataset(args):
 
 def load_all_data_by_dataset(args):
     dataset_name = args.dataset
-    
-    if dataset_name == "sea":
-        return load_all_data_sea(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
-
-    elif dataset_name == "sine":
-        return load_all_data_sine(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
-
-    elif dataset_name == "circle":
-        return load_all_data_circle(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
         
-    elif dataset_name == "MNIST":
+    if dataset_name == "MNIST":
         return load_all_data_mnist(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
         
-    elif dataset_name == "fmow":
-        return load_all_data_fmow(args.batch_size, args.curr_train_iteration, args.client_num_in_total, 
-                                  args.data_dir, args.change_points)
+    else:
+        return None
+
 
 
 def create_model(args, model_name, output_dim, feature_dim):
@@ -242,8 +128,6 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
 if __name__ == "__main__":
     # initialize distributed computing (MPI)
     comm, process_id, worker_number = FedML_init()
-    
-    print("ok")
 
     logging.basicConfig(filename='output.log', level=logging.INFO)
 
@@ -294,10 +178,10 @@ if __name__ == "__main__":
     # Set the random seed. The np.random seed determines the dataset partition.
     # The torch_manual_seed determines the initial weight.
     # Fixed so that we can reproduce the result.
-    np.random.seed(args.dummy_arg)
-    torch.manual_seed(args.dummy_arg)
-    random.seed(args.dummy_arg)
-    utils.torch_seed = args.dummy_arg
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+    utils.torch_seed = args.seed
 
     # GPU arrangement: Please customize this function according your own topology.
     # The GPU server list is configured at "mpi_host_file".
