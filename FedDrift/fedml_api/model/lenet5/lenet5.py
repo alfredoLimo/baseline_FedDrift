@@ -44,7 +44,7 @@ class LeNet5_MNIST(torch.nn.Module):
 
 # LeNet-5 model
 class LeNet5_CIFAR(torch.nn.Module):
-    def __init__(self, feature_dim=1024, num_classes=10, input_size=(32, 32)):
+    def __init__(self, feature_dim=3072, num_classes=10, input_size=(32, 32)):
         super(LeNet5_CIFAR, self).__init__()
         self.num_classes = num_classes
         in_channels = 1 if feature_dim == 1024 else 3
@@ -64,12 +64,7 @@ class LeNet5_CIFAR(torch.nn.Module):
         self.fc3 = nn.Linear(84, num_classes)  # Fully connected layer, output size num_classes
 
     def forward(self, x):
-        # Check the feature dimension (3 channels or 1 channel) to reshape accordingly
-        if x.shape[1] == 1024:  # Flattened MNIST input (grayscale)
-            x = torch.reshape(x, (x.shape[0], 1, 32, 32))  # Reshape to [batch_size, 1, 28, 28]
-        elif x.shape[1] == 3 * 32 * 32:  # Flattened 3-channel input (RGB)
-            x = torch.reshape(x, (x.shape[0], 3, 32, 32))  # Reshape to [batch_size, 3, 28, 28]
-
+        x = torch.reshape(x, (x.shape[0], 3, 32, 32))  # Reshape to [batch_size, 3, 28, 28]
         x = F.relu(self.conv1(x))  # Apply ReLU after conv1
         x = self.pool1(x)  # Apply subsampling pool1
         x = F.relu(self.conv2(x))  # Apply ReLU after conv2

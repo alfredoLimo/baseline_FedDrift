@@ -59,7 +59,7 @@ class ResNet9_MNIST(nn.Module):
 class ResNet9_CIFAR(nn.Module):
     def __init__(self, feature_dim, num_classes, input_size=(32, 32)):
         super().__init__()
-        in_channels = 1 if feature_dim == 1024 else 3
+        in_channels = 3
         self.num_classes = num_classes
         self.prep = residual_block(in_channels, 64)
         self.layer1_head = residual_block(64, 128, pool=True)
@@ -79,11 +79,7 @@ class ResNet9_CIFAR(nn.Module):
         self.linear = nn.Linear(self.feature_size, num_classes)
 
     def forward(self, x):
-        # Check the feature dimension (3 channels or 1 channel) to reshape accordingly
-        if x.shape[1] == 784:  # Flattened MNIST input (grayscale)
-            x = torch.reshape(x, (x.shape[0], 1, 32, 32))  # Reshape to [batch_size, 1, 28, 28]
-        elif x.shape[1] == 3 * 32 * 32:  # Flattened 3-channel input (RGB)
-            x = torch.reshape(x, (x.shape[0], 3, 32, 32))  # Reshape to [batch_size, 3, 28, 28]
+        x = torch.reshape(x, (x.shape[0], 3, 32, 32))  # Reshape to [batch_size, 3, 28, 28]
 
         x = self.prep(x)
         x = self.layer1_head(x)

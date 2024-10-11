@@ -179,10 +179,10 @@ def create_model(args, model_name, output_dim, feature_dim):
 
     if model_name == "ResNet9":
         if args.dataset in ["MNIST", "FMNIST"]:
-            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            logging.info("ResNet9, feature_dim = %s" % feature_dim)
             model = ResNet9_MNIST(feature_dim,output_dim)
         if args.dataset in ["CIFAR10", "CIFAR100"]:
-            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            logging.info("ResNet9, feature_dim = %s" % feature_dim)
             model = ResNet9_CIFAR(feature_dim,output_dim)   
 
     # if model_name == "lr":
