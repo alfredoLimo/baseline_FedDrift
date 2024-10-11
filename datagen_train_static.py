@@ -7,19 +7,19 @@ import torch
 import pandas as pd
 import os
 
-# === opy-paste your config.py file here ===
+# === copy-paste your config.py file here ===
 random_seed = 42
 n_clients = 10
-dataset_name = "MNIST" # ["CIFAR10", "CIFAR100", "MNIST", "FMNIST", "EMNIST"]
+dataset_name = "CIFAR10" # ["CIFAR10", "CIFAR100", "MNIST", "FMNIST", "EMNIST"]
 drifting_type = 'trND_teDR' # ['static', 'trND_teDR', 'trDA_teDR', 'trDA_teND', 'trDR_teDR', 'trDR_teND'] refer to ANDA page for more details
 non_iid_type = 'Py' # refer to ANDA page for more details
 verbose = True
 count_labels = True
 plot_clients = False
 args = {
-    'scaling_low': 2.0,
-    'scaling_high': 3.0,
-    'reverse_test': True,
+    # 'color_bank':3,
+    'scaling_low':0.8,
+    'scaling_high':1.5,
 }
 n_rounds = 10
 

@@ -104,7 +104,57 @@ def load_all_data_mnist(batch_size, current_train_iteration, num_client):
         all_data.append(all_data_c)
         
     return all_data
+
+def load_all_data_fmnist(batch_size, current_train_iteration, num_client):
+    data_path = "./../../../data/FMNIST/"
     
+    all_data_pd = load_all_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv')
+        
+    all_data = list()
+    
+    for c in range(num_client):        
+        all_data_c = list()
+        for it in range(current_train_iteration + 1):
+            all_data_c.append(batch_data(all_data_pd[c][it], batch_size))
+        all_data.append(all_data_c)
+        
+    return all_data
+
+def load_all_data_cifar10(batch_size, current_train_iteration, num_client):
+    data_path = "./../../../data/CIFAR10/"
+    
+    all_data_pd = load_all_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv')
+        
+    all_data = list()
+    
+    for c in range(num_client):        
+        all_data_c = list()
+        for it in range(current_train_iteration + 1):
+            all_data_c.append(batch_data(all_data_pd[c][it], batch_size))
+        all_data.append(all_data_c)
+        
+    return all_data
+    
+def load_all_data_cifar100(batch_size, current_train_iteration, num_client):
+    data_path = "./../../../data/CIFAR100/"
+    
+    all_data_pd = load_all_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv')
+        
+    all_data = list()
+    
+    for c in range(num_client):        
+        all_data_c = list()
+        for it in range(current_train_iteration + 1):
+            all_data_c.append(batch_data(all_data_pd[c][it], batch_size))
+        all_data.append(all_data_c)
+        
+    return all_data    
 
 def load_partition_data_mnist(batch_size, current_train_iteration,
                               num_client, retrain_data):
@@ -148,7 +198,136 @@ def load_partition_data_mnist(batch_size, current_train_iteration,
     return client_num, train_data_num, test_data_num, train_data_global, \
         test_data_global, train_data_local_num_dict, train_data_local_dict, \
         test_data_local_dict, class_num
-        
+
+def load_partition_data_fmnist(batch_size, current_train_iteration,
+                              num_client, retrain_data):
+    data_path = "./../../../data/FMNIST/"
+
+    # Load the data from generated CSVs
+    train_data, test_data = load_retrain_table_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv', retrain_data)
+    
+    
+    # Prepare data for FedML
+    train_data_num = 0
+    test_data_num = 0
+    train_data_local_dict = dict()
+    test_data_local_dict = dict()
+    train_data_local_num_dict = dict()
+    train_data_global = list()
+    test_data_global = list()
+    
+
+    for c in range(num_client):
+        train_data_num += len(train_data[c].index)
+        test_data_num += len(test_data[c].index)
+        train_data_local_num_dict[c] = len(train_data[c].index)
+
+        # transform to batches
+        if len(train_data[c].index) > 0:
+            train_batch = batch_data(train_data[c], batch_size)
+            train_data_local_dict[c] = train_batch
+            train_data_global += train_batch
+            
+        if len(test_data[c].index) > 0:
+            test_batch = batch_data(test_data[c], batch_size)        
+            test_data_local_dict[c] = test_batch        
+            test_data_global += test_batch
+            
+    client_num = num_client
+    class_num = 10
+
+    return client_num, train_data_num, test_data_num, train_data_global, \
+        test_data_global, train_data_local_num_dict, train_data_local_dict, \
+        test_data_local_dict, class_num
+
+def load_partition_data_cifar10(batch_size, current_train_iteration,
+                              num_client, retrain_data):
+    data_path = "./../../../data/CIFAR10/"
+
+    # Load the data from generated CSVs
+    train_data, test_data = load_retrain_table_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv', retrain_data)
+    
+    
+    # Prepare data for FedML
+    train_data_num = 0
+    test_data_num = 0
+    train_data_local_dict = dict()
+    test_data_local_dict = dict()
+    train_data_local_num_dict = dict()
+    train_data_global = list()
+    test_data_global = list()
+    
+
+    for c in range(num_client):
+        train_data_num += len(train_data[c].index)
+        test_data_num += len(test_data[c].index)
+        train_data_local_num_dict[c] = len(train_data[c].index)
+
+        # transform to batches
+        if len(train_data[c].index) > 0:
+            train_batch = batch_data(train_data[c], batch_size)
+            train_data_local_dict[c] = train_batch
+            train_data_global += train_batch
+            
+        if len(test_data[c].index) > 0:
+            test_batch = batch_data(test_data[c], batch_size)        
+            test_data_local_dict[c] = test_batch        
+            test_data_global += test_batch
+            
+    client_num = num_client
+    class_num = 10
+
+    return client_num, train_data_num, test_data_num, train_data_global, \
+        test_data_global, train_data_local_num_dict, train_data_local_dict, \
+        test_data_local_dict, class_num
+
+def load_partition_data_cifar100(batch_size, current_train_iteration,
+                              num_client, retrain_data):
+    data_path = "./../../../data/CIFAR100/"
+
+    # Load the data from generated CSVs
+    train_data, test_data = load_retrain_table_data(
+        data_path, num_client, current_train_iteration,
+        'client_{}_iter_{}.csv', retrain_data)
+    
+    
+    # Prepare data for FedML
+    train_data_num = 0
+    test_data_num = 0
+    train_data_local_dict = dict()
+    test_data_local_dict = dict()
+    train_data_local_num_dict = dict()
+    train_data_global = list()
+    test_data_global = list()
+    
+
+    for c in range(num_client):
+        train_data_num += len(train_data[c].index)
+        test_data_num += len(test_data[c].index)
+        train_data_local_num_dict[c] = len(train_data[c].index)
+
+        # transform to batches
+        if len(train_data[c].index) > 0:
+            train_batch = batch_data(train_data[c], batch_size)
+            train_data_local_dict[c] = train_batch
+            train_data_global += train_batch
+            
+        if len(test_data[c].index) > 0:
+            test_batch = batch_data(test_data[c], batch_size)        
+            test_data_local_dict[c] = test_batch        
+            test_data_global += test_batch
+            
+    client_num = num_client
+    class_num = 100
+
+    return client_num, train_data_num, test_data_num, train_data_global, \
+        test_data_global, train_data_local_num_dict, train_data_local_dict, \
+        test_data_local_dict, class_num
+
 
 class MNIST_Data:
     def __init__(self):

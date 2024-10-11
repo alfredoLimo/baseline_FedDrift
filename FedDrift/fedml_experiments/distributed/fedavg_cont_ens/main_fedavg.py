@@ -3,6 +3,7 @@ import logging
 import os
 import socket
 import sys
+import csv
 
 import numpy as np
 import psutil
@@ -12,11 +13,25 @@ import wandb
 import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
 
-from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_mnist, load_all_data_mnist
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_mnist
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_all_data_mnist
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_fmnist
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_all_data_fmnist
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_cifar10
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_all_data_cifar10
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_cifar100
+from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_all_data_cifar100
+
 from fedml_api.model.linear.lr import LogisticRegression
 from fedml_api.model.fnn.fnn import FeedForwardNN
 from fedml_api.model.cv.cnn import CNN_DropOut
 import torchvision
+
+# self
+from fedml_api.model.lenet5.lenet5 import LeNet5_MNIST,LeNet5_CIFAR
+from fedml_api.model.resnet9.resnet9 import ResNet9_MNIST,ResNet9_CIFAR
+
+
 
 from fedml_api.model import utils
 from fedml_api.distributed.fedavg_ens.FedAvgEnsAPI import FedML_init, FedML_FedAvgEns_distributed, FedML_FedAvgEns_data_loader
@@ -71,7 +86,62 @@ def load_data_by_dataset(args):
         train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
         class_num = load_partition_data_mnist(args.batch_size, args.curr_train_iteration,
                                               args.client_num_in_total, args.retrain_data)
-        feature_num = 784 # TODO
+        
+        # check the length of CSV file to tell if colored
+        dataset_path = "./../../../data/MNIST/client_0_iter_0.csv"
+        # Open the CSV file and read the first row
+        with open(dataset_path, 'r') as file:
+            reader = csv.reader(file)
+            first_row = next(reader)
+        feature_num = len(first_row) - 1
+        print(f"Feature number dynamically set to: {feature_num}")
+
+    if dataset_name == "FMNIST":
+        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
+        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
+        class_num = load_partition_data_fmnist(args.batch_size, args.curr_train_iteration,
+                                              args.client_num_in_total, args.retrain_data)
+        
+        # check the length of CSV file to tell if colored
+        dataset_path = "./../../../data/FMNIST/client_0_iter_0.csv"
+        # Open the CSV file and read the first row
+        with open(dataset_path, 'r') as file:
+            reader = csv.reader(file)
+            first_row = next(reader)
+        feature_num = len(first_row) - 1
+        print(f"Feature number dynamically set to: {feature_num}")
+
+    if dataset_name == "CIFAR10":
+        
+        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
+        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
+        class_num = load_partition_data_cifar10(args.batch_size, args.curr_train_iteration,
+                                              args.client_num_in_total, args.retrain_data)
+        
+        # check the length of CSV file to tell if colored
+        dataset_path = "./../../../data/CIFAR10/client_0_iter_0.csv"
+        # Open the CSV file and read the first row
+        with open(dataset_path, 'r') as file:
+            reader = csv.reader(file)
+            first_row = next(reader)
+        feature_num = len(first_row) - 1
+        print(f"Feature number dynamically set to: {feature_num}")
+
+    if dataset_name == "CIFAR100":
+        
+        client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
+        train_data_local_num_dict, train_data_local_dict, test_data_local_dict, \
+        class_num = load_partition_data_cifar100(args.batch_size, args.curr_train_iteration,
+                                              args.client_num_in_total, args.retrain_data)
+        
+        # check the length of CSV file to tell if colored
+        dataset_path = "./../../../data/CIFAR100/client_0_iter_0.csv"
+        # Open the CSV file and read the first row
+        with open(dataset_path, 'r') as file:
+            reader = csv.reader(file)
+            first_row = next(reader)
+        feature_num = len(first_row) - 1
+        print(f"Feature number dynamically set to: {feature_num}")
 
     dataset = [train_data_num, test_data_num, train_data_global, test_data_global,
                train_data_local_num_dict, train_data_local_dict, test_data_local_dict,
@@ -84,7 +154,13 @@ def load_all_data_by_dataset(args):
         
     if dataset_name == "MNIST":
         return load_all_data_mnist(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
-        
+    if dataset_name == "FMNIST":
+        return load_all_data_fmnist(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
+    if dataset_name == "CIFAR10":
+        return load_all_data_cifar10(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
+    if dataset_name == "CIFAR100":
+        return load_all_data_cifar100(args.batch_size, args.curr_train_iteration, args.client_num_in_total)
+    
     else:
         return None
 
@@ -93,7 +169,21 @@ def load_all_data_by_dataset(args):
 def create_model(args, model_name, output_dim, feature_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == ""
+    if model_name == "LeNet5":
+        if args.dataset in ["MNIST", "FMNIST"]:
+            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            model = LeNet5_MNIST(feature_dim,output_dim)
+        if args.dataset in ["CIFAR10", "CIFAR100"]:
+            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            model = LeNet5_CIFAR(feature_dim,output_dim)
+
+    if model_name == "ResNet9":
+        if args.dataset in ["MNIST", "FMNIST"]:
+            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            model = ResNet9_MNIST(feature_dim,output_dim)
+        if args.dataset in ["CIFAR10", "CIFAR100"]:
+            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            model = ResNet9_CIFAR(feature_dim,output_dim)   
 
     # if model_name == "lr":
     #     logging.info("LogisticRegression, feature_dim = %s" % feature_dim)

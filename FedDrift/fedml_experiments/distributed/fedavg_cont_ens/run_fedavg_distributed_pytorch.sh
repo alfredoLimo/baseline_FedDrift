@@ -1,15 +1,15 @@
 #!/bin/bash
 CLIENT_NUM=10       # SET SAME
 WORKER_NUM=10       # SET SAME
-SEED=0              # SET SAME
-MODEL=fnn           # TODO
+SEED=42             # SET SAME
+MODEL=LeNet5        # SET SAME
 EPOCH=5             # SET SAME
-BATCH_SIZE=500      # SET SAME
+BATCH_SIZE=512      # SET SAME
 LR=0.01             # SET SAME    
-DATASET=MNIST       # TODO others
+DATASET=CIFAR10       # SET SAME
 TRAIN_ITER=10       # SET SAME AS n_rounds for datasets?
 CONCEPT_NUM=4       # TO DISCUSS
-ROUND=5             # TO DISCUSS
+ROUND=5             # TO DISCUSS about train_iter
 CL_ALGO=softcluster         # BASELINES     # change params for each type
 CL_ALGO_ARG=H_A_C_1_10_0    # BASELINES     # change params for each type
 TIME_STRETCH=1
