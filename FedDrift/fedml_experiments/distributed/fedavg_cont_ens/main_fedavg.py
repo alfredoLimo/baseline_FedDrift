@@ -93,19 +93,21 @@ def load_all_data_by_dataset(args):
 def create_model(args, model_name, output_dim, feature_dim):
     logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
-    if model_name == "lr":
-        logging.info("LogisticRegression, feature_dim = %s" % feature_dim)
-        model = LogisticRegression(feature_dim, output_dim)
+    if model_name == ""
+
+    # if model_name == "lr":
+    #     logging.info("LogisticRegression, feature_dim = %s" % feature_dim)
+    #     model = LogisticRegression(feature_dim, output_dim)
     if model_name == "fnn":
         logging.info("FeedForwardNN, feature_dim = %s" % feature_dim)
         model = FeedForwardNN(feature_dim, output_dim, feature_dim * 2)
-    if model_name == "cnn":
-        logging.info("CNN_DropOut")
-        model = CNN_DropOut()
-    if model_name == "densenet":
-        model = torchvision.models.densenet121(pretrained=True)
-    if model_name == "resnet":
-        model = torchvision.models.resnet18(pretrained=True)
+    # if model_name == "cnn":
+    #     logging.info("CNN_DropOut")
+    #     model = CNN_DropOut()
+    # if model_name == "densenet":
+    #     model = torchvision.models.densenet121(pretrained=True)
+    # if model_name == "resnet":
+    #     model = torchvision.models.resnet18(pretrained=True)
     utils.reinitialize(model)
     return model
 

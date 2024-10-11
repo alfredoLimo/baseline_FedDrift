@@ -1,15 +1,15 @@
 #!/bin/bash
-CLIENT_NUM=10       # checked
-WORKER_NUM=10       # checked
-SEED=0              # checked
+CLIENT_NUM=10       # SET SAME
+WORKER_NUM=10       # SET SAME
+SEED=0              # SET SAME
 MODEL=fnn           # TODO
-EPOCH=5             # checked
-BATCH_SIZE=500      # checked
-LR=0.01             # checked    
-DATASET=MNIST       # TODO
-TRAIN_ITER=10       # checked
-CONCEPT_NUM=4       # wtf
-ROUND=5             # FIXED, to learn, going extra training.. not good, paper shit
+EPOCH=5             # SET SAME
+BATCH_SIZE=500      # SET SAME
+LR=0.01             # SET SAME    
+DATASET=MNIST       # TODO others
+TRAIN_ITER=10       # SET SAME AS n_rounds for datasets?
+CONCEPT_NUM=4       # TO DISCUSS
+ROUND=5             # TO DISCUSS
 CL_ALGO=softcluster         # BASELINES     # change params for each type
 CL_ALGO_ARG=H_A_C_1_10_0    # BASELINES     # change params for each type
 TIME_STRETCH=1
