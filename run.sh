@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# datasets
-# rm -rf ./FedDrift/data/MNIST/*.csv
-# rm -rf ./FedDrift/data/FMNIST/*.csv
-# rm -rf ./FedDrift/data/EMNIST/*.csv
-# rm -rf ./FedDrift/data/CIFAR10/*.csv
-# rm -rf ./FedDrift/data/CIFAR100/*.csv
+datasets
+rm -rf ./FedDrift/data/MNIST/*.csv
+rm -rf ./FedDrift/data/FMNIST/*.csv
+rm -rf ./FedDrift/data/EMNIST/*.csv
+rm -rf ./FedDrift/data/CIFAR10/*.csv
+rm -rf ./FedDrift/data/CIFAR100/*.csv
 
-# # Change your settings here
-# python ./datagen_train_static.py
+# Change your settings here
+python ./datagen_train_static.py
 
 wandb login
 
