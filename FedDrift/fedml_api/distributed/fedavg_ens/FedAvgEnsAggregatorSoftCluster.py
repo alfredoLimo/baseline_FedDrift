@@ -90,7 +90,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
                         if rest.shape[0] > 0:
                             if all(curr_acc[m] < np.max(rest, axis=0) + 0.01):
                                 deleted_models.append(m)
-                                wandb.run.summary["Reset-{}".format(m)] = 1
+                                # wandb.run.summary["Reset-{}".format(m)] = 1
                                 sc_state.set_weights_zero_model(m)
                                 reinitialize(self.models[m])
                     if len(deleted_models) > 0:
@@ -122,7 +122,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
         return model_params
 
     def add_local_trained_result(self, index, weights_and_num_samples):
-        logging.info("add_model. index = %d" % index)
+        # logging.info("add_model. index = %d" % index)
         self.weights_and_num_samples_dict[index] = weights_and_num_samples
         self.flag_client_model_uploaded_dict[index] = True
 
@@ -142,7 +142,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
             if did_split:   
                 # skip this round, since the local updates correspond to an outdated set of models
                 end_time = time.time()
-                logging.info("aggregate time cost: %d" % (end_time - start_time))
+                # logging.info("aggregate time cost: %d" % (end_time - start_time))
                 return self.get_global_model_params()
 
         # Do aggregate for all models one by one
@@ -191,7 +191,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
             self.sc_state.cluster(curr_acc, self.args.curr_train_iteration, round_idx+1)
             
         end_time = time.time()
-        logging.info("aggregate time cost: %d" % (end_time - start_time))
+        # logging.info("aggregate time cost: %d" % (end_time - start_time))
         return self.get_global_model_params()
 
     def client_sampling(self, round_idx, client_num_in_total, client_num_per_round):
@@ -201,7 +201,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
             num_clients = min(client_num_per_round, client_num_in_total)
             np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
             client_indexes = np.random.choice(range(client_num_in_total), num_clients, replace=False)
-        logging.info("client_indexes = %s" % str(client_indexes))
+        # logging.info("client_indexes = %s" % str(client_indexes))
         return client_indexes
 
     def extra_info(self, round_idx):
@@ -211,7 +211,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
         # if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
         # if round_idx == self.args.comm_round - 1:
         if True:
-            logging.info("################local_test_on_all_clients : {}".format(round_idx))
+            logging.info(" ################ local testing eval round : {}".format(self.args.curr_train_iteration))
             train_num_samples = []
             train_tot_corrects = []
             train_losses = []
@@ -237,11 +237,16 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 test_tot_corrects.append(copy.deepcopy(test_tot_correct))
                 test_num_samples.append(copy.deepcopy(test_num_sample))
                 test_losses.append(copy.deepcopy(test_loss))
-                if self.args.report_client == 1:
-                    wandb.log({"Train/Acc-CL-{}".format(client_idx): self.reported_acc(train_tot_correct, train_num_sample),
-                               "round": round_idx})
-                    wandb.log({"Test/Acc-CL-{}".format(client_idx): self.reported_acc(test_tot_correct, test_num_sample),
-                               "round": round_idx})
+                # wandb.log({"Train/Acc-CL-{}".format(client_idx): self.reported_acc(train_tot_correct, train_num_sample),
+                #             "round": round_idx})
+                # wandb.log({"Test/Acc-CL-{}".format(client_idx): self.reported_acc(test_tot_correct, test_num_sample),
+                #             "round": round_idx})
+                stats = {'client_idx': client_idx,
+                         'train_acc': train_tot_correct / train_num_sample,
+                         'train_loss': train_loss / train_num_sample,
+                         'test_acc': test_tot_correct / test_num_sample,
+                         'test_loss': test_loss / test_num_sample }
+                logging.info(stats)
                 
                 # # test data over specific digits
                 # if self.args.dataset == 'MNIST':
@@ -268,16 +273,16 @@ class FedAvgEnsAggregatorSoftCluster(object):
             # test on training dataset
             train_acc = sum(train_tot_corrects) / sum(train_num_samples)
             train_loss = sum(train_losses) / sum(train_num_samples)
-            wandb.log({"Train/Acc": train_acc, "round": round_idx})
-            wandb.log({"Train/Loss": train_loss, "round": round_idx})
+            # wandb.log({"Train/Acc": train_acc, "round": round_idx})
+            # wandb.log({"Train/Loss": train_loss, "round": round_idx})
             stats = {'training_acc': train_acc, 'training_loss': train_loss}
             logging.info(stats)
 
             # test on test dataset
             test_acc = sum(test_tot_corrects) / sum(test_num_samples)
             test_loss = sum(test_losses) / sum(test_num_samples)
-            wandb.log({"Test/Acc": test_acc, "round": round_idx})
-            wandb.log({"Test/Loss": test_loss, "round": round_idx})
+            # wandb.log({"Test/Acc": test_acc, "round": round_idx})
+            # wandb.log({"Test/Loss": test_loss, "round": round_idx})
             stats = {'test_acc': test_acc, 'test_loss': test_loss}
             logging.info(stats)
 

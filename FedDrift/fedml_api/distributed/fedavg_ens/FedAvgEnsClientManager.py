@@ -54,6 +54,6 @@ class FedAvgEnsClientManager(ClientManager):
         self.send_message(message)
 
     def __train(self):
-        logging.info("#######training########### round_id = %d" % self.round_idx)
+        # logging.info("#######training########### round_id = %d" % self.round_idx)
         weights_and_num_samples = self.trainer.train()
         self.send_model_to_server(0, weights_and_num_samples)

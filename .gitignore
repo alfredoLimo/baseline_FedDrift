@@ -67,3 +67,5 @@ miniconda.sh
 data/
 FedDrift/data/
 temp_data/
+
+output.log

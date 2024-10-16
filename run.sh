@@ -7,12 +7,12 @@
 # rm -rf ./FedDrift/data/CIFAR10/*.csv
 # rm -rf ./FedDrift/data/CIFAR100/*.csv
 
-# # Change your settings here
+# ! Change your settings here
 # python ./datagen_train_static.py
+# python ./datagen_train_dynamic.py
 
-wandb login
-
+rm -rf ./output.log
 cd FedDrift/fedml_experiments/distributed/fedavg_cont_ens
 
-# Change your settings here
+# ! Change your settings here
 ./run_fedavg_distributed_pytorch.sh

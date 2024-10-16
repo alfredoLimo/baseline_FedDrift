@@ -12,6 +12,7 @@ import torch
 import wandb
 import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../../..")))
 
 from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_partition_data_mnist
 from fedml_api.data_preprocessing.MNIST.data_loader_cont import load_all_data_mnist
@@ -79,7 +80,7 @@ def add_args(parser):
 
 def load_data_by_dataset(args):
     dataset_name = args.dataset
-    logging.info("load_data. dataset_name = %s" % dataset_name)
+    # logging.info("load_data. dataset_name = %s" % dataset_name)
 
     if dataset_name == "MNIST":
         client_num, train_data_num, test_data_num, train_data_global, test_data_global, \
@@ -167,29 +168,29 @@ def load_all_data_by_dataset(args):
 
 
 def create_model(args, model_name, output_dim, feature_dim):
-    logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
+    # logging.info("create_model. model_name = %s, output_dim = %s" % (model_name, output_dim))
     model = None
     if model_name == "LeNet5":
         if args.dataset in ["MNIST", "FMNIST"]:
-            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            # logging.info("LeNet5, feature_dim = %s" % feature_dim)
             model = LeNet5_MNIST(feature_dim,output_dim)
         if args.dataset in ["CIFAR10", "CIFAR100"]:
-            logging.info("LeNet5, feature_dim = %s" % feature_dim)
+            # logging.info("LeNet5, feature_dim = %s" % feature_dim)
             model = LeNet5_CIFAR(feature_dim,output_dim)
 
     if model_name == "ResNet9":
         if args.dataset in ["MNIST", "FMNIST"]:
-            logging.info("ResNet9, feature_dim = %s" % feature_dim)
+            # logging.info("ResNet9, feature_dim = %s" % feature_dim)
             model = ResNet9_MNIST(feature_dim,output_dim)
         if args.dataset in ["CIFAR10", "CIFAR100"]:
-            logging.info("ResNet9, feature_dim = %s" % feature_dim)
+            # logging.info("ResNet9, feature_dim = %s" % feature_dim)
             model = ResNet9_CIFAR(feature_dim,output_dim)   
 
     # if model_name == "lr":
     #     logging.info("LogisticRegression, feature_dim = %s" % feature_dim)
     #     model = LogisticRegression(feature_dim, output_dim)
     if model_name == "fnn":
-        logging.info("FeedForwardNN, feature_dim = %s" % feature_dim)
+        # logging.info("FeedForwardNN, feature_dim = %s" % feature_dim)
         model = FeedForwardNN(feature_dim, output_dim, feature_dim * 2)
     # if model_name == "cnn":
     #     logging.info("CNN_DropOut")
@@ -211,9 +212,9 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
         gpu_index = client_index % gpu_num_per_machine
         process_gpu_dict[client_index] = gpu_index
 
-    logging.info(process_gpu_dict)
+    # logging.info(process_gpu_dict)
     device = torch.device("cuda:" + str(process_gpu_dict[process_ID - 1]) if torch.cuda.is_available() else "cpu")
-    logging.info(device)
+    # logging.info(device)
     return device
 
 
@@ -221,11 +222,12 @@ if __name__ == "__main__":
     # initialize distributed computing (MPI)
     comm, process_id, worker_number = FedML_init()
 
-    logging.basicConfig(filename='output.log', level=logging.INFO)
+    logging.basicConfig(filename='./../../../../output.log', level=logging.INFO)
     # parse python script input parameters
     parser = argparse.ArgumentParser()
     args = add_args(parser)
-    logging.info(args)
+    if process_id == 0:
+        logging.info(args)
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -254,23 +256,23 @@ if __name__ == "__main__":
                                 process_id) + ' - %(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                             datefmt='%a, %d %b %Y %H:%M:%S')
         hostname = socket.gethostname()
-        logging.info("#############process ID = " + str(process_id) +
-                    ", host name = " + hostname + "########" +
-                    ", process ID = " + str(os.getpid()) +
-                    ", process Name = " + str(psutil.Process(os.getpid())))
+        # logging.info("############# process ID = " + str(process_id) +
+        #             ", host name = " + hostname + "########" +
+        #             ", process ID = " + str(os.getpid()) +
+        #             ", process Name = " + str(psutil.Process(os.getpid())))
 
     # initialize the wandb machine learning experimental tracking platform (https://www.wandb.com/).
-    if process_id == 0:
-        wandb.init(
-            project="fedml",
-            name="FedAvgCont(d)-" + args.dataset +
-                "-r" + str(args.comm_round) + "-e" +
-                str(args.epochs) + "-lr" + str(args.lr) +
-                "-iter" + str(args.curr_train_iteration) +
-                "-dt" + str(args.drift_together) +
-                "-" + args.concept_drift_algo,
-            config=args
-        )
+    # if process_id == 0:
+    #     wandb.init(
+    #         project="fedml",
+    #         name="FedAvgCont(d)-" + args.dataset +
+    #             "-r" + str(args.comm_round) + "-e" +
+    #             str(args.epochs) + "-lr" + str(args.lr) +
+    #             "-iter" + str(args.curr_train_iteration) +
+    #             "-dt" + str(args.drift_together) +
+    #             "-" + args.concept_drift_algo,
+    #         config=args
+    #     )
 
     # GPU arrangement: Please customize this function according your own topology.
     # The GPU server list is configured at "mpi_host_file".
@@ -281,7 +283,7 @@ if __name__ == "__main__":
     # machine 3: worker2, worker6;
     # machine 4: worker3, worker7;
     # Therefore, we can see that workers are assigned according to the order of machine list.
-    logging.info("process_id = %d, size = %d" % (process_id, worker_number))
+    # logging.info("process_id = %d, size = %d" % (process_id, worker_number))
     device = init_training_device(process_id, worker_number - 1, args.gpu_num_per_server)
 
 

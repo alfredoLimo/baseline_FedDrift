@@ -7,11 +7,15 @@ EPOCH=5             # SET SAME
 BATCH_SIZE=512      # SET SAME
 LR=0.01             # SET SAME    
 DATASET=MNIST       # SET SAME
-TRAIN_ITER=10       # SET SAME AS n_rounds for datasets?
+TRAIN_ITER=10       # SET SAME
 CONCEPT_NUM=4       # TO DISCUSS
-ROUND=1             # TO DISCUSS about train_iter
 CL_ALGO=softclusterwin-1         # BASELINES     # change params for each type
 CL_ALGO_ARG=hard-r    # BASELINES     # change params for each type
+
+
+
+
+ROUND=1            
 TIME_STRETCH=1
 SERVER_NUM=1                 
 CHANGE_POINTS=A
@@ -23,7 +27,7 @@ RESET_MODELS=0
 DRIFT_TOGETHER=0
 
 PROCESS_NUM=`expr $WORKER_NUM + 1`
-echo $PROCESS_NUM
+# echo $PROCESS_NUM
 
 hostname > mpi_host_file
 

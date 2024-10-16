@@ -619,23 +619,23 @@ class SoftClusterState:
         if self.h_cluster == 'F':
             for c in range(self.client_num):
                 self.train_data_weights[0][c][c] = 1.
-            for c in range(self.client_num):
-                wandb.log({"Plurality/CL-{}".format(c): c, "round": 0})
-                wandb.run.summary["Contribute/CL-{}".format(c)] = 1
-            wandb.run.summary["num_models"] = self.client_num   
-            wandb.run.summary["local_models"] = self.client_num
+            # for c in range(self.client_num):
+            #     wandb.log({"Plurality/CL-{}".format(c): c, "round": 0})
+            #     wandb.run.summary["Contribute/CL-{}".format(c)] = 1
+            # wandb.run.summary["num_models"] = self.client_num   
+            # wandb.run.summary["local_models"] = self.client_num
             return
         
         for c in range(self.client_num):
             self.train_data_weights[0][0][c] = 1.
             
-        for c in range(self.client_num):
-            wandb.log({"Plurality/CL-{}".format(c): 0, "round": 0})
+        # for c in range(self.client_num):
+        #     wandb.log({"Plurality/CL-{}".format(c): 0, "round": 0})
             
-            wandb.run.summary["Contribute/CL-{}".format(c)] = 1
+        #     wandb.run.summary["Contribute/CL-{}".format(c)] = 1
         
-        wandb.run.summary["num_models"] = 1   
-        wandb.run.summary["local_models"] = 0
+        # wandb.run.summary["num_models"] = 1   
+        # wandb.run.summary["local_models"] = 0
         
     def cluster(self, acc_matrix, curr_iter, round_idx):
         if self.cluster_alg == "hard":
@@ -657,16 +657,16 @@ class SoftClusterState:
         else:
             raise NameError('cluster alg')
             
-        for c in range(self.client_num):
+        # for c in range(self.client_num):
             # if self.model_num == 2:   # handled this case separately if weights are fractional
                 # wandb.log({"Weight-1/CL-{}".format(c): self.train_data_weights[curr_iter][1][c],
                            # "round": round_idx})
             # else:
-            wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
-                       "round": round_idx})
-            if 'softmax' in self.cluster_alg:
-                wandb.log({"Weight-All/CL-{}".format(c): np.array2string(self.train_data_weights[curr_iter][:,c]),
-                           "round": round_idx})
+            # wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
+            #            "round": round_idx})
+            # if 'softmax' in self.cluster_alg:
+            #     wandb.log({"Weight-All/CL-{}".format(c): np.array2string(self.train_data_weights[curr_iter][:,c]),
+                        #    "round": round_idx})
             
     def cluster_hard(self, acc_matrix, curr_iter):
         # initialize weight matrix
@@ -735,7 +735,7 @@ class SoftClusterState:
                 if any( any( self.train_data_weights[t][m] > 0 ) for t in range(curr_iter+1) ):
                     num_models += 1
                 
-        wandb.run.summary["num_models"] = num_models
+        # wandb.run.summary["num_models"] = num_models
         
         # set of clients that train a given model        
         trained_by = {}     
@@ -753,7 +753,7 @@ class SoftClusterState:
             if len(trained_by[m]) == 1:
                 local_models += 1
                 del trained_by[m]
-        wandb.run.summary["local_models"] = local_models
+        # wandb.run.summary["local_models"] = local_models
         
         for c in range(self.client_num):
             num_trained = 0
@@ -761,7 +761,7 @@ class SoftClusterState:
                 if c in clients:
                     num_trained += 1
             
-            wandb.run.summary["Contribute/CL-{}".format(c)] = num_trained
+            # wandb.run.summary["Contribute/CL-{}".format(c)] = num_trained
         
     def cluster_hard_among_existing(self, acc_matrix, curr_iter):
         # clustering occurs only among models currently in use
@@ -831,8 +831,8 @@ class SoftClusterState:
             self.set_acc(c, newest_acc)
             
         # log clustering
-        for c in range(self.client_num):
-            wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), "round": 0})
+        # for c in range(self.client_num):
+        #     wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), "round": 0})
             
         self.log_models(curr_iter)
         
@@ -962,8 +962,8 @@ class SoftClusterState:
             for to_merge in clusters.values():
                 if len(to_merge) > 1:
                     list_log.append('(' + ', '.join(str(e) for e in to_merge) + ')')
-            if len(list_log) > 0:
-                wandb.run.summary["Merge"] = ', '.join(list_log)
+            # if len(list_log) > 0:
+            #     wandb.run.summary["Merge"] = ', '.join(list_log)
                 
             for to_merge in clusters.values():
                 base_model = to_merge[0]
@@ -972,8 +972,8 @@ class SoftClusterState:
                     self.merge(curr_iter, models, base_model, second_model)
                 
         # log clustering
-        for c in range(self.client_num):
-            wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), "round": 0})
+        # for c in range(self.client_num):
+        #     wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), "round": 0})
             
         self.log_models(curr_iter)
             
@@ -1152,9 +1152,9 @@ class SoftClusterState:
         if self.cfl_retrain == 'win-1':
             self.set_weights_win1(curr_iter)
         
-        for c in range(self.client_num):
-            wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
-                       "round": 0})
+        # for c in range(self.client_num):
+        #     wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
+        #                "round": 0})
             
     def cluster_cfl(self, curr_iter, round_idx, models, weights_dict):
         did_split = False
@@ -1213,9 +1213,9 @@ class SoftClusterState:
                                 self.train_data_weights[curr_iter][next_free_model][client_idx] = 1.        
         
         if did_split:              
-            for c in range(self.client_num):
-                wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
-                           "round": round_idx})
+            # for c in range(self.client_num):
+            #     wandb.log({"Plurality/CL-{}".format(c): self.get_test_model_idx(curr_iter, c), 
+            #                "round": round_idx})
             if self.cfl_retrain == 'all':
                 for t in range(curr_iter):
                     self.train_data_weights[t] = np.copy(self.train_data_weights[curr_iter])
