@@ -285,12 +285,6 @@ if __name__ == "__main__":
     device = init_training_device(process_id, worker_number - 1, args.gpu_num_per_server)
 
 
-
-
-
-
-
-
     # load data
     datasets = FedML_FedAvgEns_data_loader(args, load_data_by_dataset, device, comm, process_id)
     all_data = load_all_data_by_dataset(args)

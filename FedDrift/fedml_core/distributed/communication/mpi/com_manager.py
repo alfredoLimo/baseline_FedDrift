@@ -71,14 +71,20 @@ class MpiCommunicationManager(BaseCommunicationManager):
     def handle_receive_message(self):
         self.is_running = True
         while self.is_running:
+        # while True:
+            # print("receive message!")
             if self.q_receiver.qsize() > 0:
                 msg_params = self.q_receiver.get()
                 self.notify(msg_params)
 
-            time.sleep(0.3)
+            # time.sleep(0.3) # what for?
+        print("handle_receive_message stopped!!!")
+
         logging.info("!!!!!!handle_receive_message stopped!!!")
 
     def stop_receive_message(self):
+        print("stopping..receiving.. waiting 10 more seconds..")
+        time.sleep(10)
         self.is_running = False
         self.__stop_thread(self.server_send_thread)
         self.__stop_thread(self.server_receive_thread)

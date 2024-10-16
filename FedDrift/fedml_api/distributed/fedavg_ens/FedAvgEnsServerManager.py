@@ -40,7 +40,9 @@ class FedAvgEnsServerManager(ServerManager):
         self.aggregator.add_local_trained_result(sender_id - 1, weights_and_num_samples)
         
         b_all_received = self.aggregator.check_whether_all_receive()
-        logging.info("b_all_received = " + str(b_all_received))
+        print(f"sender_id: {sender_id}, b_all_received: {b_all_received}")
+        # logging.info("b_all_received = " + str(b_all_received))
+        print("flag") if b_all_received else None
         if b_all_received:
         # if True:
             global_model_params = self.aggregator.aggregate(self.round_idx)

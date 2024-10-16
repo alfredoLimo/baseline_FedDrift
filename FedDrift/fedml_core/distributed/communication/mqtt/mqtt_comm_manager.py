@@ -133,7 +133,7 @@ if __name__ == '__main__':
     
     client = MqttCommManager("81.71.1.31", 1883)
     client.add_observer(Obs())
-    time.sleep(3)
+    time.sleep(5)
     print('client ID:%s' % client.client_id)
 
     message = Message(0, 1, 2)
