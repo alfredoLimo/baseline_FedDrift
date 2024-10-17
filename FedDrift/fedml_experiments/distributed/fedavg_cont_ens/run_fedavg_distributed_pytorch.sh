@@ -1,18 +1,18 @@
 #!/bin/bash
 fold=$1
-CLIENT_NUM=2       # SET SAME
-WORKER_NUM=2       # SET SAME
-SEED=42             # SET SAME
-MODEL=LeNet5        # SET SAME
-EPOCH=5             # SET SAME
-BATCH_SIZE=512      # SET SAME
-LR=0.01             # SET SAME    
-DATASET=MNIST       # SET SAME
-TRAIN_ITER=10       # SET SAME
-CONCEPT_NUM=4       # TO DISCUSS
-CL_ALGO=softclusterwin-1         # BASELINES     # change params for each type
-CL_ALGO_ARG=hard-r    # BASELINES     # change params for each type
+CL_ALGO=$2   
+CL_ALGO_ARG=$3
+CLIENT_NUM=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_clients; print(n_clients)")
+WORKER_NUM=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_clients; print(n_clients)")
+SEED=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import random_seed; print(random_seed)")
+MODEL=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import model_name; print(model_name)")
+EPOCH=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import local_epochs; print(local_epochs)")
+BATCH_SIZE=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import batch_size; print(batch_size)")
+LR=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import lr; print(lr)")
+DATASET=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import dataset_name; print(dataset_name)")
+TRAIN_ITER=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_rounds; print(n_rounds)")
 
+CONCEPT_NUM=4  # ?
 
 
 
@@ -83,5 +83,6 @@ do
            --concept_drift_algo_arg $CL_ALGO_ARG \
            --time_stretch $TIME_STRETCH \
            --seed $SEED \
-           --change_points "${CHANGE_POINTS:-rand}"
+           --change_points "${CHANGE_POINTS:-rand}" \
+           --fold $fold
 done

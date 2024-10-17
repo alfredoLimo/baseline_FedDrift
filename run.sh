@@ -8,15 +8,23 @@ non_iid_type=$(python -c "from config import non_iid_type; print(non_iid_type)")
 n_clients=$(python -c "from config import n_clients; print(n_clients)")
 n_rounds=$(python -c "from config import n_rounds; print(n_rounds)")
 
+CL_ALGO=softclusterwin-1        # BASELINES    
+CL_ALGO_ARG=hard-r              # BASELINES   
+
 echo -e "\n\033[1;36mExperiment settings:\033[0m\n\033[1;36m \
     MODEL: $model_name\033[0m\n\033[1;36m \
     Dataset: $dataset_name\033[0m\n\033[1;36m \
     Drifting type: $drifting_type\033[0m\n\033[1;36m \
     Data non-IID type: $non_iid_type\033[0m\n\033[1;36m \
     Number of clients: $n_clients\033[0m\n\033[1;36m \
-    Number of rounds: $n_rounds\033[0m\n \
-    \033[1;36mK-Folds: $k_folds\033[0m\n"
+    Number of rounds: $n_rounds\033[0m\n\033[0;31m \
+    baseline_CL_ALGO: $CL_ALGO\033[0m\n\033[0;31m \
+    baseline_CL_ALGO_ARG: $CL_ALGO_ARG\033[0m\n\033[1;36m \
+    K-Folds: $k_folds\033[0m\n"
 
+
+# clean history
+rm -rf output_[0-9]*.log
 
 # K-Fold evaluation, if k_folds > 1
 for fold in $(seq 0 $(($k_folds - 1))); do        
@@ -33,9 +41,9 @@ for fold in $(seq 0 $(($k_folds - 1))); do
     # go to dir
     cd FedDrift/fedml_experiments/distributed/fedavg_cont_ens
 
-    ./run_fedavg_distributed_pytorch.sh "$fold"
+    ./run_fedavg_distributed_pytorch.sh "$fold" "$CL_ALGO" "$CL_ALGO_ARG"
 
-
+    cd ../../../..
 done
 
 # TODO Dario K-Fold evaluation

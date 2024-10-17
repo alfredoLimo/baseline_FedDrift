@@ -68,6 +68,8 @@ def add_args(parser):
     parser.add_argument('--curr_train_iteration', type=int, default=0, help='The current Fededrated Learning iterations (over time)')
     parser.add_argument('--report_client', type=int, default=0, help='Whether reporting the accuracy of each client')
     parser.add_argument('--retrain_data', type=str, default='win-1', help='which data to be included for retraining')
+    parser.add_argument('--fold', type=int, default='0', help='fold')
+
     
     parser.add_argument('--client_optimizer', type=str, default='adam', help='SGD with momentum; adam')
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
@@ -222,12 +224,12 @@ if __name__ == "__main__":
     # initialize distributed computing (MPI)
     comm, process_id, worker_number = FedML_init()
 
-    logging.basicConfig(filename='./../../../../output.log', level=logging.INFO)
     # parse python script input parameters
     parser = argparse.ArgumentParser()
     args = add_args(parser)
+    logging.basicConfig(filename=f'./../../../../output_{args.seed + args.fold}.log', level=logging.INFO)
     if process_id == 0:
-        logging.info("\n\n\n\n")
+        logging.info("\n")
         logging.info(args)
 
     np.random.seed(args.seed)
