@@ -227,6 +227,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     args = add_args(parser)
     if process_id == 0:
+        logging.info("\n\n\n\n")
         logging.info(args)
 
     np.random.seed(args.seed)

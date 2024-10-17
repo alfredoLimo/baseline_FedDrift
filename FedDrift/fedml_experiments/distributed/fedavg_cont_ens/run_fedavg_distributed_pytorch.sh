@@ -1,6 +1,7 @@
 #!/bin/bash
-CLIENT_NUM=10       # SET SAME
-WORKER_NUM=10       # SET SAME
+fold=$1
+CLIENT_NUM=2       # SET SAME
+WORKER_NUM=2       # SET SAME
 SEED=42             # SET SAME
 MODEL=LeNet5        # SET SAME
 EPOCH=5             # SET SAME
@@ -11,6 +12,7 @@ TRAIN_ITER=10       # SET SAME
 CONCEPT_NUM=4       # TO DISCUSS
 CL_ALGO=softclusterwin-1         # BASELINES     # change params for each type
 CL_ALGO_ARG=hard-r    # BASELINES     # change params for each type
+
 
 
 
