@@ -12,7 +12,7 @@ LR=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import lr; pri
 DATASET=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import dataset_name; print(dataset_name)")
 TRAIN_ITER=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_rounds; print(n_rounds)")
 
-CONCEPT_NUM=4  # ?
+CONCEPT_NUM=4  # ? Prefixed parameter - number of clusters
 
 
 

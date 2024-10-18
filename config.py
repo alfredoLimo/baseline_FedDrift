@@ -1,6 +1,25 @@
 # Overall settings
 k_folds = 2 # number of folds for cross-validation, if 1, no cross-validation
-strategy = 'cfl_oneshot' # ['fedavg', 'fedprox', 'cfl_oneshot', 'cfl_drift', 'optimal_FL']
+strategy = 'ada' # ['cfl', 'ifca', 'ada', 'feddrift', 'feddrift-eagar']  
+
+cl_algo_dict = {
+    'cfl': 'softcluster',
+    'ifca': 'softclusterwin-1',
+    'ada': 'ada',
+    'feddrift': 'softcluster',
+    'feddrift-eagar': 'softcluster'
+}
+cl_algo = cl_algo_dict[strategy]
+
+cl_algo_arg_dict = {
+    'cfl': 'cfl_0.1_win-1',
+    'ifca': 'hard-r',
+    'ada': 'win-1_iter',
+    'feddrift': 'H_A_F_1_06_0',
+    'feddrift-eagar': 'mmacc_06'
+}
+cl_algo_arg = cl_algo_arg_dict[strategy]
+
 random_seed = 42
 gpu = 1 # set the GPU to use, if -1 use CPU, -2 for multigpus
 n_clients = 2

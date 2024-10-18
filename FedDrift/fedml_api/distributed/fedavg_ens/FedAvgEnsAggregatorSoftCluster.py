@@ -12,6 +12,17 @@ from fedml_api.distributed.fedavg.utils import transform_list_to_tensor, transfo
 from fedml_api.distributed.fedavg_ens.FedAvgEnsDataLoader import SoftClusterState
 from fedml_api.model.utils import reinitialize
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+parent_dir = os.path.dirname(parent_dir)
+parent_dir = os.path.dirname(parent_dir)
+parent_dir = os.path.dirname(parent_dir)
+sys.path.append(parent_dir)
+import config as cfg
+
+
 
 class FedAvgEnsAggregatorSoftCluster(object):
     def __init__(self, train_globals, test_globals, all_train_data_nums,
@@ -219,6 +230,9 @@ class FedAvgEnsAggregatorSoftCluster(object):
             test_num_samples = []
             test_tot_corrects = []
             test_losses = []
+            
+            test_losses_clients = []
+            test_acc_clients = []
             for client_idx in range(self.args.client_num_in_total):
                 test_model_idx = self.sc_state.get_test_model_idx(self.args.curr_train_iteration, client_idx)
                 train_model_idx = test_model_idx
@@ -248,6 +262,11 @@ class FedAvgEnsAggregatorSoftCluster(object):
                          'test_loss': test_loss / test_num_sample }
                 logging.info(stats)
                 
+                # Save only last metrics in numpy format
+                if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                    test_losses_clients.append(test_loss / test_num_sample)
+                    test_acc_clients.append(test_tot_correct / test_num_sample)
+
                 # # test data over specific digits
                 # if self.args.dataset == 'MNIST':
                     # test_acc6 = self._infer_class(self.models[test_model_idx],
@@ -261,7 +280,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
                                    # "round": round_idx})
                         # wandb.log({"Test/Digit9-CL-{}".format(client_idx): test_acc9,
                                    # "round": round_idx})
-                    
+            
 
                 """
                 Note: CI environment is CPU-based computing. 
@@ -269,6 +288,16 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 """
                 if self.args.ci == 1:
                     break
+                
+            # Save metrics in numpy format
+            if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                metrics = {
+                    "loss": test_losses_clients,
+                    "accuracy": test_acc_clients,
+                    "average_loss": np.mean(test_losses_clients),
+                    "average_accuracy": np.mean(test_acc_clients),
+                }
+                np.save(f'{parent_dir}/test_metrics_fold_{self.args.fold}.npy', metrics)
 
             # test on training dataset
             train_acc = sum(train_tot_corrects) / sum(train_num_samples)

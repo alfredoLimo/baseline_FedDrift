@@ -3,7 +3,7 @@ import logging
 import time
 
 import torch
-import wandb
+# import wandb
 import numpy as np
 import pickle
 from torch import nn
@@ -11,6 +11,15 @@ from torch import nn
 from fedml_api.distributed.fedavg.utils import transform_list_to_tensor, transform_tensor_to_list
 from fedml_api.distributed.fedavg_ens.FedAvgEnsDataLoader import AdaState
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+parent_dir = os.path.dirname(parent_dir)
+parent_dir = os.path.dirname(parent_dir)
+parent_dir = os.path.dirname(parent_dir)
+sys.path.append(parent_dir)
+import config as cfg
 
 class FedAvgEnsAggregatorAda(object):
     def __init__(self, train_globals, test_globals, all_train_data_nums,
@@ -138,7 +147,7 @@ class FedAvgEnsAggregatorAda(object):
     def test_on_all_clients(self, round_idx):
         # if round_idx % self.args.frequency_of_the_test == 0 or round_idx == self.args.comm_round - 1:
         if True:
-            logging.info("################local_test_on_all_clients : {}".format(round_idx))
+            logging.info("################local_test_on_all_clients : {}".format(self.args.curr_train_iteration))
             train_num_samples = []
             train_tot_corrects = []
             train_losses = []
@@ -146,6 +155,9 @@ class FedAvgEnsAggregatorAda(object):
             test_num_samples = []
             test_tot_corrects = []
             test_losses = []
+            
+            test_losses_clients = []
+            test_acc_clients = []
             for client_idx in range(self.args.client_num_in_total):
                 train_model_idx = 0
                 test_model_idx = 0
@@ -162,11 +174,16 @@ class FedAvgEnsAggregatorAda(object):
                 test_tot_corrects.append(copy.deepcopy(test_tot_correct))
                 test_num_samples.append(copy.deepcopy(test_num_sample))
                 test_losses.append(copy.deepcopy(test_loss))
-                if self.args.report_client == 1:
-                    wandb.log({"Train/Acc-CL-{}".format(client_idx): self.reported_acc(train_tot_correct, train_num_sample),
-                               "round": round_idx})
-                    wandb.log({"Test/Acc-CL-{}".format(client_idx): self.reported_acc(test_tot_correct, test_num_sample),
-                               "round": round_idx})
+                # if self.args.report_client == 1:
+                    # wandb.log({"Train/Acc-CL-{}".format(client_idx): self.reported_acc(train_tot_correct, train_num_sample),
+                    #            "round": round_idx})
+                    # wandb.log({"Test/Acc-CL-{}".format(client_idx): self.reported_acc(test_tot_correct, test_num_sample),
+                    #            "round": round_idx})
+                
+                # Save only last metrics in numpy format
+                if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                    test_losses_clients.append(test_loss / test_num_sample)
+                    test_acc_clients.append(test_tot_correct / test_num_sample)
 
                 """
                 Note: CI environment is CPU-based computing. 
@@ -174,20 +191,31 @@ class FedAvgEnsAggregatorAda(object):
                 """
                 if self.args.ci == 1:
                     break
+            
+            
+            # Save metrics in numpy format
+            if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                metrics = {
+                    "loss": test_losses_clients,
+                    "accuracy": test_acc_clients,
+                    "average_loss": np.mean(test_losses_clients),
+                    "average_accuracy": np.mean(test_acc_clients),
+                }
+                np.save(f'{parent_dir}/test_metrics_fold_{self.args.fold}.npy', metrics)
 
             # test on training dataset
             train_acc = sum(train_tot_corrects) / sum(train_num_samples)
             train_loss = sum(train_losses) / sum(train_num_samples)
-            wandb.log({"Train/Acc": train_acc, "round": round_idx})
-            wandb.log({"Train/Loss": train_loss, "round": round_idx})
+            # wandb.log({"Train/Acc": train_acc, "round": round_idx})
+            # wandb.log({"Train/Loss": train_loss, "round": round_idx})
             stats = {'training_acc': train_acc, 'training_loss': train_loss}
             logging.info(stats)
 
             # test on test dataset
             test_acc = sum(test_tot_corrects) / sum(test_num_samples)
             test_loss = sum(test_losses) / sum(test_num_samples)
-            wandb.log({"Test/Acc": test_acc, "round": round_idx})
-            wandb.log({"Test/Loss": test_loss, "round": round_idx})
+            # wandb.log({"Test/Acc": test_acc, "round": round_idx})
+            # wandb.log({"Test/Loss": test_loss, "round": round_idx})
             stats = {'test_acc': test_acc, 'test_loss': test_loss}
             logging.info(stats)
 

@@ -36,6 +36,16 @@ cifar-10-batches-py
 *.png
 *.zip
 *.json
+*.npy
+*.npz
+*.pth
+*.pkl
+*.pt
+*.csv
+*.txt
+*.log
+*.h5
+*.xlsx
 
 !data/fmow/partitions/**/*.csv
 data/fmow/partitions/test*
@@ -67,5 +77,6 @@ miniconda.sh
 data/
 FedDrift/data/
 temp_data/
+results/
 
 output.log
