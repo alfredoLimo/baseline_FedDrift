@@ -32,12 +32,12 @@ for fold in $(seq 0 $(($k_folds - 1))); do
     echo -e "\n\033[1;36mStarting fold $((fold + 1))\033[0m\n"
 
     # Clean and create datasets
-    # rm -rf ./FedDrift/data/MNIST/*.csv
-    # rm -rf ./FedDrift/data/FMNIST/*.csv
-    # rm -rf ./FedDrift/data/EMNIST/*.csv
-    # rm -rf ./FedDrift/data/CIFAR10/*.csv
-    # rm -rf ./FedDrift/data/CIFAR100/*.csv
-    # python ./data_gen.py --fold "$fold"
+    rm -rf ./FedDrift/data/MNIST/*.csv
+    rm -rf ./FedDrift/data/FMNIST/*.csv
+    rm -rf ./FedDrift/data/EMNIST/*.csv
+    rm -rf ./FedDrift/data/CIFAR10/*.csv
+    rm -rf ./FedDrift/data/CIFAR100/*.csv
+    python ./data_gen.py --fold "$fold"
 
     # go to dir
     cd FedDrift/fedml_experiments/distributed/fedavg_cont_ens

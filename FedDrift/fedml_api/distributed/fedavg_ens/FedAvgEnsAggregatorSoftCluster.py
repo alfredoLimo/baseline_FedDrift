@@ -1,7 +1,9 @@
 import copy
 import logging
 import time
-
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, TensorDataset
+import pandas as pd
 import torch
 import wandb
 import numpy as np
@@ -34,7 +36,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
         self.all_data = all_data
 
         self.train_data_local_dicts = train_data_local_dicts
-        self.test_data_local_dicts = test_data_local_dicts
+        self.test_data_local_dicts = test_data_local_dicts    # used
         self.train_data_local_num_dicts = train_data_local_num_dicts
 
         self.worker_num = worker_num
@@ -120,7 +122,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 test_model_idx = sc_state.get_test_model_idx(self.args.curr_train_iteration, client_idx)
                 train_data = self.all_data[client_idx][self.args.curr_train_iteration]
                 train_tot_correct, train_num_sample, train_loss = self._infer(self.models[test_model_idx],
-                                                                              train_data)
+                                                                              train_data, client_index=-1)
                 train_acc = 0
                 if train_num_sample != 0:
                     train_acc = train_tot_correct/train_num_sample
@@ -238,16 +240,23 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 train_model_idx = test_model_idx
                 
                 # train data (for only the current iter)
-                train_data = self.all_data[client_idx][self.args.curr_train_iteration]
-                train_tot_correct, train_num_sample, train_loss = self._infer(self.models[train_model_idx],
-                                                                              train_data)
+                # train_data = self.all_data[client_idx][self.args.curr_train_iteration]
+                # train_tot_correct, train_num_sample, train_loss = self._infer(self.models[train_model_idx],
+                #                                                               train_data)
+                train_tot_correct = 1.0
+                train_num_sample = 1.0
+                train_loss = 1.0
+
                 train_tot_corrects.append(copy.deepcopy(train_tot_correct))
                 train_num_samples.append(copy.deepcopy(train_num_sample))
                 train_losses.append(copy.deepcopy(train_loss))
 
+                # load 11th data
+                # create dataset and loader 
+                # pass 
                 # test data
                 test_tot_correct, test_num_sample, test_loss = self._infer(self.models[test_model_idx],
-                                                                           self.test_data_local_dicts[test_model_idx][client_idx])
+                                                                           self.test_data_local_dicts[test_model_idx][client_idx],client_idx)   # modify this
                 test_tot_corrects.append(copy.deepcopy(test_tot_correct))
                 test_num_samples.append(copy.deepcopy(test_num_sample))
                 test_losses.append(copy.deepcopy(test_loss))
@@ -338,14 +347,62 @@ class FedAvgEnsAggregatorSoftCluster(object):
         
         return acc
 
-    def _infer(self, model, test_data):
+    def _infer(self, model, test_data,client_index = 0):
         model.eval()
         model.to(self.device)
+
+        # normal use
+        if client_index != -1:
+            # refind the data
+            # not last iteration
+            data_path = ""
+            if self.args.curr_train_iteration != self.args.total_train_iteration - 1:
+                dataset_path = f"./../../../data/{self.args.dataset}/client_{client_index}_train.csv"
+                cur_data = pd.read_csv(dataset_path)
+                # print(f"Data shape: {cur_data.shape}", flush=True)
+                # Separate features (all columns except the last one)
+                cur_features = cur_data.iloc[:, :-1]
+                cur_labels = cur_data.iloc[:, -1]
+                # Calculate the index for 80% of the data
+                _, cur_features_test, _, cur_labels_test = train_test_split(
+                    cur_features, cur_labels, train_size=0.8, random_state=self.args.seed
+                )
+                
+                batch_size = self.args.batch_size
+
+                # Convert features and labels to PyTorch tensors
+                cur_features_tensor = torch.tensor(cur_features_test.values, dtype=torch.float32)
+                cur_labels_tensor = torch.tensor(cur_labels_test.values, dtype=torch.long)  # Assuming classification task
+
+                # Create a TensorDataset and DataLoader for batching
+                dataset = TensorDataset(cur_features_tensor, cur_labels_tensor)
+                dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+            else:
+                dataset_path = f"./../../../data/{self.args.dataset}/client_{client_index}_test.csv"
+                cur_data = pd.read_csv(dataset_path)
+                # print(f"Data shape: {cur_data.shape}", flush=True)
+                # Separate features (all columns except the last one)
+                cur_features_test = cur_data.iloc[:, :-1]
+                cur_labels_test = cur_data.iloc[:, -1]
+                print("here1", flush=True)
+                batch_size = self.args.batch_size
+
+                # Convert features and labels to PyTorch tensors
+                cur_features_tensor = torch.tensor(cur_features_test.values, dtype=torch.float32)
+                cur_labels_tensor = torch.tensor(cur_labels_test.values, dtype=torch.long)  # Assuming classification task
+
+                # Create a TensorDataset and DataLoader for batching
+                dataset = TensorDataset(cur_features_tensor, cur_labels_tensor)
+                dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+                print("here2", flush=True)    
+        else:
+            dataloader = test_data        
+
 
         test_loss = test_acc = test_total = 0.
         criterion = nn.CrossEntropyLoss().to(self.device)
         with torch.no_grad():
-            for batch_idx, (x, target) in enumerate(test_data):
+            for batch_idx, (x, target) in enumerate(dataloader):
                 x = x.to(self.device)
                 target = target.to(self.device)
                 pred = model(x)
@@ -357,7 +414,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 test_loss += loss.item() * target.size(0)
                 test_total += target.size(0)
 
-        model.to(torch.device('cpu'))
+        # model.to(torch.device('cpu'))
 
         return test_acc, test_total, test_loss
      

@@ -1,12 +1,13 @@
 import logging
-
+import pandas as pd
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
 import torch
 from torch import nn
 import numpy as np
 import torchvision
 
 from fedml_api.distributed.fedavg.utils import transform_tensor_to_list, transform_list_to_tensor
-
 
 class FedAvgEnsTrainerSoftCluster(object):
     def __init__(self, client_index, train_data_local_dicts, train_data_local_num_dicts, train_data_nums, all_local_data, device, models,
@@ -18,6 +19,7 @@ class FedAvgEnsTrainerSoftCluster(object):
         self.all_local_data = all_local_data
 
         self.device = device
+        print(f"Device: {self.device}", flush=True)
         self.args = args
         self.models = models
         # logging.info(self.model)        
@@ -28,11 +30,12 @@ class FedAvgEnsTrainerSoftCluster(object):
             #m.to(self.device)  #Move model to GPU one at a time to save GPU memory
             self.criterions.append(nn.CrossEntropyLoss().to(self.device))
             if self.args.client_optimizer == "sgd":
-                self.optimizers.append(torch.optim.SGD(m.parameters(), lr=self.args.lr))
+                self.optimizers.append(torch.optim.SGD(m.parameters(), lr=self.args.lr, momentum=0.9))
             else:
-                self.optimizers.append(torch.optim.Adam(filter(lambda p: p.requires_grad, m.parameters()),
-                                                        lr=self.args.lr,
-                                                        weight_decay=self.args.wd, amsgrad=True))
+                # self.optimizers.append(torch.optim.Adam(filter(lambda p: p.requires_grad, m.parameters()),
+                #                                         lr=self.args.lr,
+                #                                         weight_decay=self.args.wd, amsgrad=True))   # MODIFIED: we only use SGD
+                self.optimizers.append(torch.optim.SGD(m.parameters(), lr=self.args.lr, momentum=0.9))
 
     
     def _freeze_layers(self, model):
@@ -87,42 +90,87 @@ class FedAvgEnsTrainerSoftCluster(object):
             optimizer = self.optimizers[mod_idx]
             
             # self._freeze_layers(model)
+
+            # NEW CODE FOR TRAINING
+            print(f"cur_iter: {self.args.curr_train_iteration}", flush=True)
+
+            dataset_path = f"./../../../data/{self.args.dataset}/client_{self.client_index}_train.csv"
+            cur_data = pd.read_csv(dataset_path)
+            # print(f"Data shape: {cur_data.shape}", flush=True)
+            # Separate features (all columns except the last one)
+            cur_features = cur_data.iloc[:, :-1]
+            cur_labels = cur_data.iloc[:, -1]
+            # Calculate the index for 80% of the data
+            cur_features_train, _, cur_labels_train, _ = train_test_split(
+                cur_features, cur_labels, train_size=0.8, random_state=self.args.seed
+)
             
-            if all( isinstance(self.all_local_data[t], list) for t in range(len(self.all_local_data)) ):
-                batches = []
-                for t in range(len(self.all_local_data)):
-                    if unnorm_probs[t] > 0:
-                        batches += self.all_local_data[t]
-            
-                for step in range(self.args.epochs):
-                    # # general case: fractional weights
-                    # t_sample = np.random.choice(len(self.all_local_data), p=probs)
-                    # data_t = self.all_local_data[t_sample]
-                    # batch_idx = np.random.choice(len(data_t))
-                    # (x, labels) = data_t[batch_idx]
-                    
-                    # special case: weights are unit
-                    batch_idx = np.random.choice(len(batches))
-                    (x, labels) = batches[batch_idx]
-                    
+            batch_size = self.args.batch_size
+
+            # Convert features and labels to PyTorch tensors
+            cur_features_tensor = torch.tensor(cur_features_train.values, dtype=torch.float32)
+            cur_labels_tensor = torch.tensor(cur_labels_train.values, dtype=torch.long)  # Assuming classification task
+
+            # Create a TensorDataset and DataLoader for batching
+            dataset = TensorDataset(cur_features_tensor, cur_labels_tensor)
+            dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            # Training loop
+            for step in range(self.args.epochs):
+                for x, labels in dataloader:  # Use dataloader for batches
                     x, labels = x.to(self.device), labels.to(self.device)
                     optimizer.zero_grad()
                     log_probs = model(x)
                     loss = criterion(log_probs, labels)
                     loss.backward()
                     optimizer.step()
-            else:
-                for step in range(self.args.epochs):
-                    t_sample = np.random.choice(len(self.all_local_data), p=probs)
-                    data_t = self.all_local_data[t_sample]
-                    (x, labels) = next(iter(data_t))
-                    
-                    x, labels = x.to(self.device), labels.to(self.device)
-                    optimizer.zero_grad()
-                    log_probs = model(x)
-                    loss = criterion(log_probs, labels)
-                    loss.backward()
-                    optimizer.step()
+
+                # if all( isinstance(self.all_local_data[t], list) for t in range(len(self.all_local_data)) ):
+                #     batches = []
+
+                #     for t in range(len(self.all_local_data)):
+                #         if unnorm_probs[t] > 0:
+                #             batches += self.all_local_data[t]
+                
+                #     for step in range(self.args.epochs):
+                #         # # general case: fractional weights
+                #         # t_sample = np.random.choice(len(self.all_local_data), p=probs)
+                #         # data_t = self.all_local_data[t_sample]
+                #         # batch_idx = np.random.choice(len(data_t))
+                #         # (x, labels) = data_t[batch_idx]
+                        
+                #         # special case: weights are unit
+                #         for x, labels in batches:
+                #             x, labels = x.to(self.device), labels.to(self.device)
+                #             optimizer.zero_grad()
+                #             log_probs = model(x)
+                #             loss = criterion(log_probs, labels)
+                #             loss.backward()
+                #             optimizer.step()
+
+                #         # batch_idx = np.random.choice(len(batches))
+                #         # (x, labels) = batches[batch_idx]
+                #         # print(f"Xdim: {x.shape}", flush=True)   
+                        
+                #         # x, labels = x.to(self.device), labels.to(self.device)
+                #         # optimizer.zero_grad()
+                #         # log_probs = model(x)
+                #         # loss = criterion(log_probs, labels)
+                #         # loss.backward()
+                #         # optimizer.step()
+                # else:
+                #     raise NotImplementedError("Only list of batches is supported for now")
+                #         # t_sample = np.random.choice(len(self.all_local_data), p=probs)
+                #         # data_t = self.all_local_data[t_sample]
+                #         # (x, labels) = next(iter(data_t))
+                #         # print(f"Xdim - 2: {x.shape}", flush=True)   
+                        
+                #         # x, labels = x.to(self.device), labels.to(self.device)
+                #         # optimizer.zero_grad()
+                #         # log_probs = model(x)
+                #         # loss = criterion(log_probs, labels)
+                #         # loss.backward()
+                #         # optimizer.step()
 
             model.to(torch.device('cpu'))
             weights = model.state_dict()

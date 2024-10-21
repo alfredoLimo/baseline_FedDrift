@@ -12,7 +12,7 @@ LR=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import lr; pri
 DATASET=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import dataset_name; print(dataset_name)")
 TRAIN_ITER=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_rounds; print(n_rounds)")
 
-CONCEPT_NUM=4  # ? Prefixed parameter - number of clusters
+CONCEPT_NUM=10  # ? Prefixed parameter - number of clusters
 
 
 
@@ -21,7 +21,7 @@ ROUND=1
 TIME_STRETCH=1
 SERVER_NUM=1                 
 CHANGE_POINTS=A
-GPU_NUM_PER_SERVER=4
+GPU_NUM_PER_SERVER=2
 DATA_DIR="./../../../data/"
 NOISE_PROB=0
 CI=0
@@ -33,32 +33,10 @@ PROCESS_NUM=`expr $WORKER_NUM + 1`
 
 hostname > mpi_host_file
 
-# First we prepare the data for multiple training iterations
-# TODO: handle the case for multiple nodes
-# python3 ./prepare_data.py \
-#   --dataset $DATASET \
-#   --data_dir $DATA_DIR \
-#   --sample_num $SAMPLE_NUM \
-#   --noise_prob $NOISE_PROB \
-#   --partition_method $DISTRIBUTION \
-#   --client_num_in_total $CLIENT_NUM \
-#   --client_num_per_round $WORKER_NUM \
-#   --batch_size $BATCH_SIZE \
-#   --train_iteration $TRAIN_ITER \
-#   --drift_together $DRIFT_TOGETHER \
-#   --time_stretch $TIME_STRETCH \
-#   --change_points "${CHANGE_POINTS:-rand}"
-
-# Execute the training for one iteration at a time
-# We do this because the FedML framework calls MPI_Abort whenever
-# the training reaches the target round, and changing the
-# framework to handle multiple training iterations would break
-# most of the existing codes.
-
 TI=${TRAIN_ITER}
 for (( it=0; it < TI; it++ ));
 do
-    mpirun -np $PROCESS_NUM -hostfile ./mpi_host_file python3 ./main_fedavg.py \
+    taskset -c 0-9 mpirun -np $PROCESS_NUM -hostfile ./mpi_host_file python3 ./main_fedavg.py \
            --gpu_server_num $SERVER_NUM \
            --gpu_num_per_server $GPU_NUM_PER_SERVER \
            --model $MODEL \

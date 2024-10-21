@@ -113,6 +113,33 @@ if not cfg.training_drifting:
 
             print(f"Saved: client_{client}_iter_{it}.csv")
 
+        # Save training features and labels without chunking
+        f_flat = train_features.view(train_features.size(0), -1)  # Flatten test features
+        l_flat = train_labels.view(train_labels.size(0), -1)  # Flatten test labels
+
+        concat_train_data = torch.cat((f_flat, l_flat), dim=1)
+
+        # Convert the concatenated test data to a numpy array
+        test_data = concat_train_data.numpy()
+
+        # Create headers for test data
+        num_features = f_flat.shape[1]
+        num_labels = l_flat.shape[1]
+
+        feature_headers = [f'f{i+1}' for i in range(num_features)]
+        label_headers = ['label']
+        headers = feature_headers + label_headers
+
+        # Create a Pandas DataFrame with the headers for test data
+        df_test = pd.DataFrame(test_data, columns=headers)        
+
+
+        # REAL USED PART
+        df_test.to_csv(
+            f'./FedDrift/data/{cfg.dataset_name}/' + 'client_{}_train.csv'.format(client),
+            index=False
+        )
+
         # Save test features and labels without chunking
         f_flat = test_features.view(test_features.size(0), -1)  # Flatten test features
         l_flat = test_labels.view(test_labels.size(0), -1)  # Flatten test labels
@@ -138,6 +165,13 @@ if not cfg.training_drifting:
             f'./FedDrift/data/{cfg.dataset_name}/' + 'client_{}_iter_{}.csv'.format(client, cfg.n_rounds),
             index=False
         )
+
+        # REAL USED PART
+        df_test.to_csv(
+            f'./FedDrift/data/{cfg.dataset_name}/' + 'client_{}_test.csv'.format(client),
+            index=False
+        )
+
 
         print(f"Saved: client_{client}_iter_{cfg.n_rounds}.csv")
 

@@ -48,7 +48,7 @@ class FedAvgEnsServerManager(ServerManager):
             global_model_params = self.aggregator.aggregate(self.round_idx)
             print(f"round idx: {self.round_idx}, round num: {self.round_num}")
             self.aggregator.test_on_all_clients(self.round_idx)
-
+            print("tested on all clients")
             # start the next round
             self.round_idx += 1
             if self.round_idx == self.round_num:
