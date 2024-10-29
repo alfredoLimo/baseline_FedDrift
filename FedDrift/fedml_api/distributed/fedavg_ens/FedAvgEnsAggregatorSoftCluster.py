@@ -235,6 +235,10 @@ class FedAvgEnsAggregatorSoftCluster(object):
             
             test_losses_clients = []
             test_acc_clients = []
+            expected_losses = []
+            expected_accs = []
+            expected_losses_clusters = []
+            expected_accs_clusters = []
             for client_idx in range(self.args.client_num_in_total):
                 test_model_idx = self.sc_state.get_test_model_idx(self.args.curr_train_iteration, client_idx)
                 train_model_idx = test_model_idx
@@ -251,10 +255,9 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 train_num_samples.append(copy.deepcopy(train_num_sample))
                 train_losses.append(copy.deepcopy(train_loss))
 
-                # load 11th data
-                # create dataset and loader 
-                # pass 
-                # test data
+                
+                # --- test on participating clients to the training: known cluster ---
+                # print(f'Test model index: {test_model_idx} - client index: {client_idx}', flush=True)
                 test_tot_correct, test_num_sample, test_loss = self._infer(self.models[test_model_idx],
                                                                            self.test_data_local_dicts[test_model_idx][client_idx],client_idx)   # modify this
                 test_tot_corrects.append(copy.deepcopy(test_tot_correct))
@@ -275,6 +278,42 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 if self.args.curr_train_iteration == cfg.n_rounds - 1:
                     test_losses_clients.append(test_loss / test_num_sample)
                     test_acc_clients.append(test_tot_correct / test_num_sample)
+                
+                
+                # --- test-time inference: expected value of their models on
+                if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                    expected_loss, expected_acc = [], []
+                    for cur_model_idx in range(len(self.models)):                        
+                        test_tot_correct, test_num_sample, test_loss = self._infer(self.models[cur_model_idx],
+                                                                           self.test_data_local_dicts[test_model_idx][client_idx],client_idx)   # modify this
+                        expected_loss.append(test_loss / test_num_sample)
+                        expected_acc.append(test_tot_correct / test_num_sample)
+                        
+                    expected_losses.append(np.mean(expected_loss))
+                    expected_accs.append(np.mean(expected_acc))  
+                    print(f"Expected loss {np.mean(expected_loss)}, expected accuracy {np.mean(expected_acc)}", flush=True)
+
+
+
+                # --- test-time inference with only the models used in the last rounds ---
+                if self.args.curr_train_iteration == cfg.n_rounds - 1:
+                    used_models = []
+                    for k in range(cfg.n_clients):
+                        used_models.append(self.sc_state.get_test_model_idx(self.args.curr_train_iteration, k))
+                    used_models = np.unique(used_models)
+                        
+                    expected_loss_clusters, expected_acc_clusters = [], []
+                    for cur_model_idx in used_models:                        
+                        test_tot_correct, test_num_sample, test_loss = self._infer(self.models[cur_model_idx],
+                                                                           self.test_data_local_dicts[test_model_idx][client_idx],client_idx)   # modify this
+                        expected_loss_clusters.append(test_loss / test_num_sample)
+                        expected_acc_clusters.append(test_tot_correct / test_num_sample)
+                        
+                    expected_losses_clusters.append(np.mean(expected_loss_clusters))
+                    expected_accs_clusters.append(np.mean(expected_acc_clusters))  
+                    print(f"Expected loss cluster {np.mean(expected_loss_clusters)}, expected accuracy cluster {np.mean(expected_acc_clusters)}", flush=True)  
+                
+
 
                 # # test data over specific digits
                 # if self.args.dataset == 'MNIST':
@@ -305,6 +344,14 @@ class FedAvgEnsAggregatorSoftCluster(object):
                     "accuracy": test_acc_clients,
                     "average_loss": np.mean(test_losses_clients),
                     "average_accuracy": np.mean(test_acc_clients),
+                    "expected_loss": expected_losses,
+                    "expected_accuracy": expected_accs,
+                    "expected_average_loss": np.mean(expected_losses),
+                    "expected_average_accuracy": np.mean(expected_accs),
+                    "expected_loss_clusters": expected_losses_clusters,
+                    "expected_accuracy_clusters": expected_accs_clusters,
+                    "expected_average_loss_clusters": np.mean(expected_losses_clusters),
+                    "expected_average_accuracy_clusters": np.mean(expected_accs_clusters),
                 }
                 np.save(f'{parent_dir}/test_metrics_fold_{self.args.fold}.npy', metrics)
 
@@ -384,7 +431,6 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 # Separate features (all columns except the last one)
                 cur_features_test = cur_data.iloc[:, :-1]
                 cur_labels_test = cur_data.iloc[:, -1]
-                print("here1", flush=True)
                 batch_size = self.args.batch_size
 
                 # Convert features and labels to PyTorch tensors
@@ -394,7 +440,6 @@ class FedAvgEnsAggregatorSoftCluster(object):
                 # Create a TensorDataset and DataLoader for batching
                 dataset = TensorDataset(cur_features_tensor, cur_labels_tensor)
                 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-                print("here2", flush=True)    
         else:
             dataloader = test_data        
 

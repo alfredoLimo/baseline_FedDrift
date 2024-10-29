@@ -19,7 +19,7 @@ class FedAvgEnsTrainerSoftCluster(object):
         self.all_local_data = all_local_data
 
         self.device = device
-        print(f"Device: {self.device}", flush=True)
+        # print(f"Device: {self.device}", flush=True)
         self.args = args
         self.models = models
         # logging.info(self.model)        
@@ -92,8 +92,6 @@ class FedAvgEnsTrainerSoftCluster(object):
             # self._freeze_layers(model)
 
             # NEW CODE FOR TRAINING
-            print(f"cur_iter: {self.args.curr_train_iteration}", flush=True)
-
             dataset_path = f"./../../../data/{self.args.dataset}/client_{self.client_index}_train.csv"
             cur_data = pd.read_csv(dataset_path)
             # print(f"Data shape: {cur_data.shape}", flush=True)
