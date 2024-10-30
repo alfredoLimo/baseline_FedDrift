@@ -69,6 +69,7 @@ def add_args(parser):
     parser.add_argument('--report_client', type=int, default=0, help='Whether reporting the accuracy of each client')
     parser.add_argument('--retrain_data', type=str, default='win-1', help='which data to be included for retraining')
     parser.add_argument('--fold', type=int, default='0', help='fold')
+    parser.add_argument('--n_samples_clients', type=int, default='-1', help='number of samples per each client')
 
     
     parser.add_argument('--client_optimizer', type=str, default='adam', help='SGD with momentum; adam')

@@ -101,7 +101,12 @@ class FedAvgEnsTrainerSoftCluster(object):
             # Calculate the index for 80% of the data
             cur_features_train, _, cur_labels_train, _ = train_test_split(
                 cur_features, cur_labels, train_size=0.8, random_state=self.args.seed
-)
+            )
+            
+            # reduce client data
+            if self.args.n_samples_clients > 0:
+                cur_features_train = cur_features_train[:self.args.n_samples_clients]
+                cur_labels_train = cur_labels_train[:self.args.n_samples_clients]
             
             batch_size = self.args.batch_size
 

@@ -23,6 +23,7 @@ cl_algo_arg = cl_algo_arg_dict[strategy]
 random_seed = 42
 gpu = 1 # set the GPU to use, if -1 use CPU, -2 for multigpus
 n_clients = 3
+n_samples_clients = 1024
 
 # Strategy cfl_oneshot
 cfl_oneshot_CLIENT_SCALING_METHOD = 1

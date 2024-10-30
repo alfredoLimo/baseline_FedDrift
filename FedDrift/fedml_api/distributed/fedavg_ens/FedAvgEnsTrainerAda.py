@@ -64,6 +64,8 @@ class FedAvgEnsTrainerAda(object):
                 for g in optimizer.param_groups:
                     g['lr'] = self.extra_info['lr']
 
+            # NO TRAIN VAL SPLIT AND NO REDUCTION OF CLIENT SAMPLES - WATCH FEDAVGENSTRAINERSOFTCLUSTER.PY
+
             if isinstance(train_local, list):
                 for step in range(self.args.epochs):
                     batch_idx = np.random.choice(len(train_local))

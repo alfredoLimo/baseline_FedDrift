@@ -11,6 +11,7 @@ BATCH_SIZE=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import
 LR=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import lr; print(lr)")
 DATASET=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import dataset_name; print(dataset_name)")
 TRAIN_ITER=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_rounds; print(n_rounds)")
+N_SAMPLES_CLIENTS=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_samples_clients; print(n_samples_clients)")
 
 CONCEPT_NUM=10  # ? Prefixed parameter - number of clusters
 
@@ -62,5 +63,6 @@ do
            --time_stretch $TIME_STRETCH \
            --seed $SEED \
            --change_points "${CHANGE_POINTS:-rand}" \
-           --fold $fold
+           --fold $fold \
+           --n_samples_clients $N_SAMPLES_CLIENTS
 done
