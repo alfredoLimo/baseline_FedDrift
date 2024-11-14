@@ -37,7 +37,7 @@ hostname > mpi_host_file
 TI=${TRAIN_ITER}
 for (( it=0; it < TI; it++ ));
 do
-    taskset -c 0-9 mpirun -np $PROCESS_NUM -hostfile ./mpi_host_file python3 ./main_fedavg.py \
+    taskset -c 0-80 mpirun -np $PROCESS_NUM -hostfile ./mpi_host_file python3 ./main_fedavg.py \
            --gpu_server_num $SERVER_NUM \
            --gpu_num_per_server $GPU_NUM_PER_SERVER \
            --model $MODEL \
