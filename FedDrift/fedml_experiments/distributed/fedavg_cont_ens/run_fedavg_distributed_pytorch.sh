@@ -13,7 +13,7 @@ DATASET=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import da
 TRAIN_ITER=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_rounds; print(n_rounds)")
 N_SAMPLES_CLIENTS=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_samples_clients; print(n_samples_clients)")
 
-CONCEPT_NUM=10  # ? Prefixed parameter - number of clusters
+CONCEPT_NUM=$(PYTHONPATH=$(realpath ./../../../../) python -c "from config import n_clients; print(n_clients)")
 
 
 

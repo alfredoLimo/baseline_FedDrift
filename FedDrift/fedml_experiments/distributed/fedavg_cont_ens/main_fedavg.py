@@ -208,7 +208,7 @@ def create_model(args, model_name, output_dim, feature_dim):
 def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
     # initialize the mapping from process ID to GPU ID: <process ID, GPU ID>
     if process_ID == 0:
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
         return device
     process_gpu_dict = dict()
     for client_index in range(fl_worker_num):
@@ -216,7 +216,7 @@ def init_training_device(process_ID, fl_worker_num, gpu_num_per_machine):
         process_gpu_dict[client_index] = gpu_index
 
     # logging.info(process_gpu_dict)
-    device = torch.device("cuda:" + str(process_gpu_dict[process_ID - 1]) if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:2"  if torch.cuda.is_available() else "cpu")
     # logging.info(device)
     return device
 
@@ -338,5 +338,10 @@ if __name__ == "__main__":
                 models[m_idx].load_state_dict(p)
 
     # start "federated averaging (FedAvg) with ensembled" for this round
+    import time
+    start_time = time.time()
     FedML_FedAvgEns_distributed(process_id, worker_number, device, comm,
                                 models, datasets, all_data, class_num, args)
+    end_time = time.time() - start_time
+    print(f"Time taken for FedAvgEns: {end_time}")
+

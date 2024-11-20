@@ -23,7 +23,7 @@ strategy="feddrift"  # Options: "cfl", "ifca", "ada", "feddrift", "feddrift-eaga
 CL_ALGO="softcluster"
 CL_ALGO_ARG="H_A_F_1_06_0"
  
-for scaling in $(seq 1 4); do
+for scaling in $(seq 3 3); do
  
     echo -e "\n\033[1;36mExperiment settings:\033[0m\n\033[1;36m \
         MODEL: $model_name\033[0m\n\033[1;36m \
@@ -77,7 +77,7 @@ strategy="cfl"  # Options: "cfl", "ifca", "ada", "feddrift", "feddrift-eagar"
 CL_ALGO="softcluster"
 CL_ALGO_ARG="cfl_0.1_win-1"
  
-for scaling in $(seq 1 4); do
+for scaling in $(seq 3 3); do
  
     echo -e "\n\033[1;36mExperiment settings:\033[0m\n\033[1;36m \
         MODEL: $model_name\033[0m\n\033[1;36m \

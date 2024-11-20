@@ -49,6 +49,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
             self.flag_client_model_uploaded_dict[idx] = False
         self.models = self.init_model(models)
         self.sc_state = self.init_sc_state()
+        self.time_start_ours = time.time()
 
     def init_model(self, models):
         for m in models:
@@ -352,6 +353,7 @@ class FedAvgEnsAggregatorSoftCluster(object):
                     "expected_accuracy_clusters": expected_accs_clusters,
                     "expected_average_loss_clusters": np.mean(expected_losses_clusters),
                     "expected_average_accuracy_clusters": np.mean(expected_accs_clusters),
+                    "time": time.time() - self.time_start_ours
                 }
                 np.save(f'{parent_dir}/test_metrics_fold_{self.args.fold}.npy', metrics)
 
