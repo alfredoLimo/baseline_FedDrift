@@ -343,5 +343,5 @@ if __name__ == "__main__":
     FedML_FedAvgEns_distributed(process_id, worker_number, device, comm,
                                 models, datasets, all_data, class_num, args)
     end_time = time.time() - start_time
-    print(f"Time taken for FedAvgEns: {end_time}")
+    print(f"Time taken for FedAvgEns: {end_time}",flush=True)
 

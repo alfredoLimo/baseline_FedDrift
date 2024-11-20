@@ -36,7 +36,7 @@ fedprox_proximal_mu = 0.001
 # Dataset settings
 dataset_name = "MNIST" # ["CIFAR10", "CIFAR100", "MNIST", "FMNIST", "EMNIST"]
 drifting_type = 'static' # ['static', 'trND_teDR', 'trDA_teDR', 'trDA_teND', 'trDR_teDR', 'trDR_teND'] refer to ANDA page for more details
-non_iid_type = 'feature_condition_skew' # refer to ANDA page for more details
+non_iid_type = 'label_condition_skew' # refer to ANDA page for more details
 verbose = True
 count_labels = True
 plot_clients = False
